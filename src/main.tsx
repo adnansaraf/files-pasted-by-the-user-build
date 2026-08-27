@@ -1,8 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import * as I from 'lucide-react';
-import './index.css';
-
+import "./style.css";
 
 type Status='Available'|'Planned'|'Active'|'Conflict'|'Pending'|'Completed'|'Delayed';
 const requests=[
