@@ -15,7 +15,8 @@ import {
   HelpCircle,
   Train,
   ChevronRight,
-  Shield
+  Shield,
+  LogOut
 } from 'lucide-react';
 import { useApp, PageName } from '../context/AppContext';
 
@@ -27,7 +28,7 @@ interface NavItem {
 }
 
 export const Sidebar: React.FC = () => {
-  const { currentPage, navigateTo, conflicts, blocks, requests, overrunScenario, optimizationPlan } = useApp();
+  const { currentPage, navigateTo, conflicts, blocks, requests, overrunScenario, optimizationPlan, selectedDivision, logout } = useApp();
 
   const unresolvedConflicts = conflicts.filter(c => c.status === 'Unresolved').length;
   const pendingRequests = requests.filter(r => r.status === 'Pending').length;
@@ -68,7 +69,7 @@ export const Sidebar: React.FC = () => {
           <div className="brand-title">
             SOLVEX <span className="brand-tag">PROTOTYPE</span>
           </div>
-          <div className="brand-subtitle">Palakkad Block Planning Desk</div>
+          <div className="brand-subtitle">{selectedDivision.name} Desk</div>
         </div>
       </div>
 
@@ -133,8 +134,15 @@ export const Sidebar: React.FC = () => {
           <div className="user-avatar">AS</div>
           <div className="user-info">
             <div className="user-name">Adnan Saraf</div>
-            <div className="user-designation">Sr. DOM / Planning (PGT)</div>
+            <div className="user-designation">Sr. DOM / Planning ({selectedDivision.code})</div>
           </div>
+          <button
+            className="btn-logout-sidebar"
+            onClick={logout}
+            title="Sign Out / Change Division on Login"
+          >
+            <LogOut size={15} />
+          </button>
         </div>
       </div>
     </aside>

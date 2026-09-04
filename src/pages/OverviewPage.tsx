@@ -27,7 +27,8 @@ export const OverviewPage: React.FC = () => {
     conflicts,
     optimizationPlan,
     overrunScenario,
-    setSelectedSectionId
+    setSelectedSectionId,
+    selectedDivision
   } = useApp();
 
   const pendingRequestsCount = requests.filter(r => r.status === 'Pending').length;
@@ -44,7 +45,7 @@ export const OverviewPage: React.FC = () => {
           <div className="page-badge">OPERATIONAL CONTROL CONSOLE</div>
           <h1 className="page-title">Railway Operations Overview</h1>
           <p className="page-subtitle">
-            Palakkad Division (PGT) · Maintenance and block planning intelligence layer
+            {selectedDivision.name} ({selectedDivision.code}) · Maintenance and block planning intelligence layer
           </p>
         </div>
 

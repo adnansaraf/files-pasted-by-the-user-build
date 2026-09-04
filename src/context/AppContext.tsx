@@ -8,7 +8,9 @@ import {
   OverrunScenario,
   WhatIfScenarioState,
   Department,
-  PriorityLevel
+  PriorityLevel,
+  RailwayDivision,
+  MaintenanceWorkZone
 } from '../types';
 import {
   SECTIONS,
@@ -19,6 +21,13 @@ import {
   OVERRUN_SCENARIO_DATA,
   TRAIN_MOVEMENTS
 } from '../data/mockData';
+import {
+  RAILWAY_DIVISIONS,
+  MAINTENANCE_WORK_ZONES,
+  getDivisionById,
+  searchHierarchy,
+  SearchResultItem
+} from '../data/hierarchyData';
 
 export type PageName =
   | 'Overview'
@@ -33,6 +42,8 @@ export type PageName =
   | 'Reports & Analytics'
   | 'Plan Review'
   | 'Settings';
+
+export type MapHierarchyLevel = 'division' | 'section' | 'workzone';
 
 export interface AppNotification {
   id: string;
@@ -65,6 +76,28 @@ interface AppContextType {
   selectedSectionId: string;
   setSelectedSectionId: (id: string) => void;
   selectedSection: RailwaySection;
+
+  // Hierarchical Division & Map Drill-down
+  selectedDivisionId: string;
+  setSelectedDivisionId: (id: string) => void;
+  selectedDivision: RailwayDivision;
+  divisions: RailwayDivision[];
+  currentMapLevel: MapHierarchyLevel;
+  selectedDrillDownSectionId: string | null;
+  selectedWorkZoneId: string | null;
+  workZones: MaintenanceWorkZone[];
+  selectedWorkZone: MaintenanceWorkZone | null;
+  drillDownToSection: (sectionId: string) => void;
+  drillDownToWorkZone: (workZoneId: string) => void;
+  backToDivision: () => void;
+  backToSection: () => void;
+  approveWorkZoneBundle: (workZoneId: string) => void;
+
+  // Search
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+  searchResults: SearchResultItem[];
+  handleSelectSearchResult: (item: SearchResultItem) => void;
   
   // Data entities
   sections: RailwaySection[];
@@ -125,8 +158,6 @@ interface AppContextType {
   updateSettings: (newSettings: Partial<EngineSettings>) => void;
   resetAllDemoData: () => void;
   
-  searchQuery: string;
-  setSearchQuery: (q: string) => void;
   division: string;
   setDivision: (d: string) => void;
 }
@@ -136,8 +167,12 @@ const AppContext = createContext<AppContextType | null>(null);
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [currentPage, setCurrentPage] = useState<PageName>('Overview');
-  const [selectedSectionId, setSelectedSectionId] = useState<string>('A-B');
-  const [division, setDivision] = useState<string>('Palakkad (PGT) · Southern Railway');
+  const [selectedDivisionId, setSelectedDivisionId] = useState<string>('PGT');
+  const [selectedSectionId, setSelectedSectionId] = useState<string>('C-D');
+  const [currentMapLevel, setCurrentMapLevel] = useState<MapHierarchyLevel>('division');
+  const [selectedDrillDownSectionId, setSelectedDrillDownSectionId] = useState<string | null>(null);
+  const [selectedWorkZoneId, setSelectedWorkZoneId] = useState<string | null>(null);
+  const [workZones, setWorkZones] = useState<MaintenanceWorkZone[]>(MAINTENANCE_WORK_ZONES);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const [sections, setSections] = useState<RailwaySection[]>(SECTIONS);
@@ -205,6 +240,125 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     trainCondition: 'Normal Schedule',
     coordinatedJobsCount: 3
   });
+
+  const selectedDivision = useMemo(() => {
+    return getDivisionById(selectedDivisionId);
+  }, [selectedDivisionId]);
+
+  const division = useMemo(() => {
+    return `${selectedDivision.name} (${selectedDivision.code}) · ${selectedDivision.zone}`;
+  }, [selectedDivision]);
+
+  const setDivision = (divInput: string) => {
+    const matched = RAILWAY_DIVISIONS.find(
+      d => d.id === divInput || d.code === divInput || divInput.includes(d.id) || divInput.includes(d.name)
+    );
+    if (matched) {
+      setSelectedDivisionId(matched.id);
+    }
+  };
+
+  const selectedWorkZone = useMemo(() => {
+    if (!selectedWorkZoneId) return null;
+    return workZones.find(w => w.id === selectedWorkZoneId) || null;
+  }, [workZones, selectedWorkZoneId]);
+
+  const drillDownToSection = (sectionId: string) => {
+    setSelectedDrillDownSectionId(sectionId);
+    setSelectedSectionId(sectionId);
+    setCurrentMapLevel('section');
+    setSelectedWorkZoneId(null);
+  };
+
+  const drillDownToWorkZone = (workZoneId: string) => {
+    const wz = workZones.find(w => w.id === workZoneId);
+    if (wz) {
+      setSelectedDrillDownSectionId(wz.sectionId);
+      setSelectedSectionId(wz.sectionId);
+    }
+    setSelectedWorkZoneId(workZoneId);
+    setCurrentMapLevel('workzone');
+  };
+
+  const backToDivision = () => {
+    setCurrentMapLevel('division');
+    setSelectedDrillDownSectionId(null);
+    setSelectedWorkZoneId(null);
+  };
+
+  const backToSection = () => {
+    setCurrentMapLevel('section');
+    setSelectedWorkZoneId(null);
+  };
+
+  const approveWorkZoneBundle = (workZoneId: string) => {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' IST';
+    
+    setWorkZones(prev =>
+      prev.map(wz => {
+        if (wz.id !== workZoneId) return wz;
+        return {
+          ...wz,
+          status: 'Scheduled',
+          conflictStatus: 'No Conflict',
+          optimization: {
+            ...wz.optimization,
+            approvalStatus: 'Approved by Officer',
+            approvedBy: 'Sr. DOM / Divisional Authority',
+            approvedAt: timeStr
+          }
+        };
+      })
+    );
+
+    const targetWz = workZones.find(w => w.id === workZoneId);
+    const loc = targetWz ? `${targetWz.startStationName}–${targetWz.endStationName}` : workZoneId;
+    const win = targetWz ? targetWz.optimization.recommendedWindow : '02:30–03:30';
+
+    setNotifications(prev => [
+      {
+        id: `N-${Date.now()}`,
+        title: `SolveX Coordinated Block Approved (${loc})`,
+        desc: `Work Zone block sanctioned for window ${win}. Integrated into divisional COA/TMS timetable; 0 conflicts.`,
+        time: 'Just now',
+        type: 'success'
+      },
+      ...prev
+    ]);
+  };
+
+  const searchResults = useMemo(() => {
+    return searchHierarchy(searchQuery, sections, selectedDivisionId);
+  }, [searchQuery, sections, selectedDivisionId]);
+
+  const handleSelectSearchResult = (item: SearchResultItem) => {
+    if (item.type === 'Division') {
+      setSelectedDivisionId(item.divisionId);
+      backToDivision();
+      setSearchQuery('');
+      return;
+    }
+
+    if (item.divisionId !== selectedDivisionId) {
+      setSelectedDivisionId(item.divisionId);
+    }
+
+    if (item.sectionId) {
+      setSelectedSectionId(item.sectionId);
+      setSelectedDrillDownSectionId(item.sectionId);
+    }
+
+    if (item.workZoneId) {
+      setSelectedWorkZoneId(item.workZoneId);
+      setCurrentMapLevel('workzone');
+    } else if (item.sectionId) {
+      setCurrentMapLevel('section');
+      setSelectedWorkZoneId(null);
+    }
+
+    setSearchQuery('');
+  };
 
   const selectedSection = useMemo(() => {
     return sections.find(s => s.id === selectedSectionId) || sections[0];
@@ -482,6 +636,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         selectedSectionId,
         setSelectedSectionId,
         selectedSection,
+        selectedDivisionId,
+        setSelectedDivisionId,
+        selectedDivision,
+        divisions: RAILWAY_DIVISIONS,
+        currentMapLevel,
+        selectedDrillDownSectionId,
+        selectedWorkZoneId,
+        workZones,
+        selectedWorkZone,
+        drillDownToSection,
+        drillDownToWorkZone,
+        backToDivision,
+        backToSection,
+        approveWorkZoneBundle,
+        searchQuery,
+        setSearchQuery,
+        searchResults,
+        handleSelectSearchResult,
         sections,
         requests,
         blocks,
@@ -509,8 +681,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         whatIfResults,
         updateSettings,
         resetAllDemoData,
-        searchQuery,
-        setSearchQuery,
         division,
         setDivision
       }}

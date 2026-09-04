@@ -21,6 +21,7 @@ export const NetworkPage: React.FC = () => {
     selectedSectionId,
     setSelectedSectionId,
     selectedSection,
+    selectedDivision,
     requests,
     blocks,
     conflicts,
@@ -37,7 +38,7 @@ export const NetworkPage: React.FC = () => {
       <div className="page-header-row">
         <div>
           <div className="page-badge">SPATIAL CORRIDOR INTELLIGENCE</div>
-          <h1 className="page-title">Railway Network (Palakkad Division)</h1>
+          <h1 className="page-title">Railway Network ({selectedDivision.name})</h1>
           <p className="page-subtitle">
             Schematic operational topology showing block possessions, electrical feeder zones, and train movements
           </p>

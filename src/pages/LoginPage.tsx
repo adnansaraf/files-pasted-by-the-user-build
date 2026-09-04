@@ -3,7 +3,7 @@ import { Train, Shield, ArrowRight, Lock, User, MapPin, AlertCircle } from 'luci
 import { useApp } from '../context/AppContext';
 
 export const LoginPage: React.FC = () => {
-  const { login, division, setDivision } = useApp();
+  const { login, selectedDivisionId, setSelectedDivisionId } = useApp();
   const [empId, setEmpId] = useState('RP-04821');
   const [password, setPassword] = useState('••••••••');
 
@@ -86,24 +86,28 @@ export const LoginPage: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="form-field">
-              <label>Division & Zone</label>
+              <div className="d-flex justify-between align-center mb-1">
+                <label>Railway Division</label>
+                <span className="badge-demo-tag">SIMULATED DATASET</span>
+              </div>
               <div className="input-with-icon">
                 <MapPin size={16} className="input-icon" />
                 <select
-                  value={division}
-                  onChange={e => setDivision(e.target.value)}
+                  value={selectedDivisionId}
+                  onChange={e => setSelectedDivisionId(e.target.value)}
+                  className="division-select-input"
                 >
-                  <option value="Palakkad (PGT) · Southern Railway">
-                    Palakkad Division (PGT) · Southern Railway
-                  </option>
-                  <option value="Thiruvananthapuram (TVC) · Southern Railway">
-                    Thiruvananthapuram Division (TVC) · Southern Railway
-                  </option>
-                  <option value="Madurai (MDU) · Southern Railway">
-                    Madurai Division (MDU) · Southern Railway
-                  </option>
+                  <option value="PGT">Palakkad Division (Primary Interactive Demo)</option>
+                  <option value="TVC">Thiruvananthapuram Division</option>
+                  <option value="MAS">Chennai Division</option>
+                  <option value="MYS">Mysuru Division</option>
                 </select>
               </div>
+              <small className="form-hint-text">
+                {selectedDivisionId === 'PGT'
+                  ? '✓ Fully populated demo: Shoranur–Tirur section, multi-track stations, work zones & AI bundle recommendations.'
+                  : 'ℹ Selected division loads in standard simulated state. Switch to Palakkad Division for full multi-departmental corridor drill-down.'}
+              </small>
             </div>
 
             <div className="form-field">

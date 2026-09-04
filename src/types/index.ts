@@ -18,10 +18,12 @@ export interface RailwayStation {
   junction: boolean;
   x: number;
   y: number;
+  sectionId?: string;
+  isIntermediate?: boolean;
 }
 
 export interface RailwaySection {
-  id: string; // e.g. 'A-B'
+  id: string; // e.g. 'C-D' or 'SRR-TIR'
   fromCode: string;
   toCode: string;
   fromName: string;
@@ -34,6 +36,96 @@ export interface RailwaySection {
   activeBlockId?: string;
   plannedBlockIds?: string[];
   currentSpeedRestriction?: string;
+  divisionId?: string;
+  intermediateStationIds?: string[];
+  workZoneIds?: string[];
+}
+
+export interface RailwayDivision {
+  id: string;
+  name: string;
+  code: string;
+  zone: string;
+  routeKm: number;
+  hq: string;
+  isPopulatedDemo: boolean;
+  sectionsCount: number;
+  activeBlocksCount: number;
+  pendingRequestsCount: number;
+}
+
+export interface SectionStationNode {
+  id: string;
+  code: string;
+  name: string;
+  km: number;
+  junction: boolean;
+  sectionId: string;
+  nodeType: 'Junction Station' | 'Terminal Station' | 'Intermediate Station' | 'Station Node';
+}
+
+export interface WorkZoneTask {
+  id: string;
+  dept: Department;
+  workType: string;
+  durationMin: number;
+  description: string;
+  priority: PriorityLevel;
+  resources: string;
+}
+
+export interface WorkZoneAlternativeWindow {
+  id: string;
+  window: string;
+  durationMin: number;
+  operationalImpact: 'Low' | 'Medium' | 'High';
+  conflicts: number;
+  isRecommended?: boolean;
+  reason: string;
+}
+
+export interface WorkZoneOptimization {
+  compatibleTasksCount: number;
+  combinedBlockDurationMin: number;
+  recommendedWindow: string;
+  operationalImpact: 'Low' | 'Medium' | 'High';
+  conflictsAvoided: number;
+  timeSavedMin: number;
+  synergyScore: number;
+  explanation: string;
+  alternativeWindows: WorkZoneAlternativeWindow[];
+  approvalStatus: 'Pending Review' | 'Approved by Officer' | 'Dispatched to Control';
+  approvedBy?: string;
+  approvedAt?: string;
+}
+
+export interface MaintenanceWorkZone {
+  id: string;
+  sectionId: string;
+  sectionName: string;
+  startStationCode: string;
+  startStationName: string;
+  endStationCode: string;
+  endStationName: string;
+  line: 'UP Line' | 'DN Line' | 'Both Lines';
+  chainage: string; // e.g. 'km 598/200 – km 601/400'
+  status: 'Scheduled' | 'Active' | 'Pending' | 'Operational Conflict' | 'Available';
+  criticality: PriorityLevel;
+  workSummary: string;
+  departments: Department[];
+  estimatedDurationMin: number;
+  preferredWindow: string;
+  affectedTrains: {
+    trainNo: string;
+    trainName: string;
+    category: string;
+    scheduledPassage: string;
+    impact: string;
+  }[];
+  conflictStatus: 'No Conflict' | 'Operational Conflict' | 'Potential Conflict';
+  conflictDetail?: string;
+  tasks: WorkZoneTask[];
+  optimization: WorkZoneOptimization;
 }
 
 export interface MaintenanceRequest {

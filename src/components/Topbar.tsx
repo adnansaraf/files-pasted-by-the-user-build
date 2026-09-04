@@ -17,14 +17,18 @@ import { useApp } from '../context/AppContext';
 
 export const Topbar: React.FC = () => {
   const {
-    division,
-    setDivision,
+    selectedDivisionId,
+    setSelectedDivisionId,
+    selectedDivision,
+    divisions,
     notifications,
     searchQuery,
     setSearchQuery,
+    searchResults,
+    handleSelectSearchResult,
     setIsNewRequestModalOpen,
     navigateTo,
-    setSelectedSectionId
+    currentPage
   } = useApp();
 
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -56,50 +60,48 @@ export const Topbar: React.FC = () => {
 
   return (
     <header className="topbar">
+      {/* SolveX Brand & Division Indicator in Header */}
+      <div className="topbar-branding-cluster">
+        <div className="topbar-brand-title">
+          <span className="brand-primary-name">SolveX</span>
+          <span className="brand-descriptor">AI-Powered Railway Maintenance Block Planning</span>
+        </div>
+      </div>
+
       {/* Division Selector */}
       <div className="division-selector-container">
         <button
           className="division-btn"
           onClick={() => setShowDivisionMenu(!showDivisionMenu)}
+          title="Switch Railway Division"
         >
-          <MapPin size={16} className="text-maroon" />
-          <span className="division-name">{division}</span>
+          <MapPin size={15} className="text-maroon" />
+          <span className="division-name">{selectedDivision.name}</span>
           <ChevronDown size={14} />
         </button>
 
         {showDivisionMenu && (
           <div className="division-dropdown">
-            <div className="dropdown-header">Select Operational Division</div>
-            <button
-              className="dropdown-item active"
-              onClick={() => {
-                setDivision('Palakkad (PGT) · Southern Railway');
-                setShowDivisionMenu(false);
-              }}
-            >
-              <strong>Palakkad (PGT)</strong>
-              <small>Southern Railway · 588 Route km</small>
-            </button>
-            <button
-              className="dropdown-item"
-              onClick={() => {
-                setDivision('Thiruvananthapuram (TVC) · Southern Railway');
-                setShowDivisionMenu(false);
-              }}
-            >
-              <strong>Thiruvananthapuram (TVC)</strong>
-              <small>Southern Railway · 625 Route km</small>
-            </button>
-            <button
-              className="dropdown-item"
-              onClick={() => {
-                setDivision('Madurai (MDU) · Southern Railway');
-                setShowDivisionMenu(false);
-              }}
-            >
-              <strong>Madurai (MDU)</strong>
-              <small>Southern Railway · 1,356 Route km</small>
-            </button>
+            <div className="dropdown-header">Select Operational Railway Division</div>
+            {divisions.map(div => {
+              const isActive = selectedDivisionId === div.id;
+              return (
+                <button
+                  key={div.id}
+                  className={`dropdown-item ${isActive ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedDivisionId(div.id);
+                    setShowDivisionMenu(false);
+                  }}
+                >
+                  <div className="d-flex justify-between align-center">
+                    <strong>{div.name} ({div.code})</strong>
+                    {div.isPopulatedDemo && <span className="demo-chip-active">Main Demo</span>}
+                  </div>
+                  <small>{div.zone} · {div.routeKm} Route km</small>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -116,19 +118,60 @@ export const Topbar: React.FC = () => {
         <span>SIMULATED FEED: TMS / COA / SMMS</span>
       </div>
 
-      {/* Search Input */}
-      <div className="topbar-search">
-        <Search size={15} className="search-icon" />
-        <input
-          type="text"
-          placeholder="Search sections (A-B, SRR), trains (12617), requests..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-        />
-        {searchQuery && (
-          <button className="clear-search-btn" onClick={() => setSearchQuery('')}>
-            <X size={13} />
-          </button>
+      {/* Search Input with Hierarchical Autocomplete */}
+      <div className="topbar-search-wrapper">
+        <div className="topbar-search">
+          <Search size={15} className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search stations (PTB, Tirur), sections (SRR-TIR), trains (12617)..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button className="clear-search-btn" onClick={() => setSearchQuery('')}>
+              <X size={13} />
+            </button>
+          )}
+        </div>
+
+        {/* Hierarchical Search Results Dropdown */}
+        {searchQuery.trim().length >= 2 && (
+          <div className="search-results-popover">
+            <div className="search-results-header">
+              <span>Matching Hierarchy Entities ({searchResults.length})</span>
+              <small>Click to drill down directly</small>
+            </div>
+            {searchResults.length > 0 ? (
+              <div className="search-results-list">
+                {searchResults.map(item => (
+                  <div
+                    key={item.id}
+                    className="search-result-row"
+                    onClick={() => {
+                      handleSelectSearchResult(item);
+                      if (currentPage !== 'Railway Network' && currentPage !== 'Overview') {
+                        navigateTo('Railway Network');
+                      }
+                    }}
+                  >
+                    <span className={`search-badge badge-type-${item.type.toLowerCase().replace(/ /g, '-')}`}>
+                      {item.type}
+                    </span>
+                    <div className="search-result-info">
+                      <div className="search-result-title">{item.title}</div>
+                      <div className="search-result-sub">{item.subtitle}</div>
+                    </div>
+                    <span className="search-hint">{item.actionHint} →</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="search-no-results">
+                No matching stations, sections, work zones, or trains found for "{searchQuery}".
+              </div>
+            )}
+          </div>
         )}
       </div>
 

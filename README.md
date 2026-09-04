@@ -13,19 +13,30 @@
 
 ## 🌟 Key Capabilities
 
-### 1. 👥 Multi-Tier Role-Based Access Control (RBAC)
-- **HQ Block Planner / Operating Department**: Full corridor scheduling, system optimization, cross-divisional approvals.
-- **Divisional Authority (DRM / Sr. DOM)**: Approval matrix, safety threshold enforcement, sanctioning authority.
-- **Section Controller (Control Office)**: Live block execution, real-time granting/bursting, train precedence management.
-- **Site Engineer / Field Supervisor**: Submission of block demands, machine deployment logs, live delay & completion reports.
+### 1. 👥 Multi-Tier Role-Based Access Control & Division Selection
+- **Railway Division Selection**: Support for operational divisions (**Palakkad Division**, **Thiruvananthapuram Division**, **Chennai Division**, **Mysuru Division**).
+- **Divisional Authority & Block Planner Console**: Seamless credential sign-in and division state synchronization.
+- **Section Controller & Field Officers**: Live execution, machine logging, and contingency sign-off.
 
-### 2. 🗺️ Interactive Schematic Track Network
-- Dynamic track topology diagram representing railway sections (e.g., *Vijayawada – Duvvada (BZA–DVD)*, *Chennai Central – Gudur (MAS–GDR)*, *New Delhi – Kanpur (NDLS–CNB)*).
-- Real-time visual status of stations, block sections, crossovers, speed restrictions (TSR/PSR), and active track occupancies.
+### 2. 🗺️ 3-Level Hierarchical Track Network & Work Zone Drill-Down
+- **Level 1 (Division Map)**:
+  - Macro corridor topology showing primary stations (**PGT**, **OTP**, **SRR**, **TIR**, **CLT**, **TCR**, **POY**) and operational railway sections.
+  - Lines between stations strictly represent **Railway Sections** (avoiding visual misconceptions that entire sections are blocked).
+  - Clear interaction cues: *"Click section to view stations"*.
+- **Level 2 (Section Detail Map)**:
+  - Deep-dive into active corridor (e.g., **Shoranur Jn ↔ Tirur**).
+  - Intermediate station nodes rendered clearly (**SRR**, **PTB**, **PUM**, **KTU**, **TNA**, **TIR**). Strictly adheres to railway terminology (*Station / Station Node*, never *substation*).
+  - Dual track layout (UP Line & DN Line) with crossovers and live train markers.
+- **Level 3 (Localized Maintenance Work Zones)**:
+  - Highlighting specific track possessions (e.g., between **Pattambi** & **Pallippuram** on UP Line, km 598/200–601/400).
+  - Isolates maintenance impact to the exact work zone rather than displaying whole sections under maintenance.
 
-### 3. ⏱️ 24-Hour Corridor Gantt Timeline
-- Multi-track visual timeline rendering passenger/freight train paths alongside scheduled civil & electrical blocks.
-- Correlated **Shadow Block** detection: enables S&T and Electrical teams to perform work during civil engineering blocks without extra traffic disruption.
+### 3. ⚡ SolveX Innovation: Multi-Department Corridor Bundling
+- **DETECT ➔ BUNDLE ➔ OPTIMIZE ➔ SCORE IMPACT ➔ REPLAN ➔ EXPLAIN ➔ APPROVE**:
+  - Automatically identifies overlapping civil engineering (tamping), electrical TRD (OHE inspection), and S&T (axle counter calibration) requisitions.
+  - Generates unified coordinated corridor possession windows (e.g., **02:30 – 03:30 IST**), saving 50+ minutes of isolated track downtime and eliminating conflicts with passenger trains (e.g., Express 12617).
+  - Dynamic Alternative Windows comparison with operational impact and delay tradeoffs.
+  - One-click **Officer Sanction & Approval Action** that issues direct clearance orders.
 
 ### 4. 🧠 Intelligent Optimization & Window Recommendation Engine
 - Heuristic and constraint-satisfaction optimization that searches for minimal-impact maintenance windows.
