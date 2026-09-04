@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ZoomIn,
   ZoomOut,
@@ -20,13 +20,39 @@ import {
   Compass
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { getSectionStations, getWorkZonesForSection } from '../data/hierarchyData';
-import { MaintenanceWorkZone, SectionStatus } from '../types';
+import { getDivisionNetwork, getSectionStations, getWorkZonesForSection } from '../data/hierarchyData';
+import { MaintenanceWorkZone, SectionStatus, RailwaySection } from '../types';
 
 interface SchematicMapProps {
   compact?: boolean;
   onSectionClick?: (sectionId: string) => void;
 }
+
+const DIVISION_TRAINS: Record<
+  string,
+  { no: string; name: string; x: number; y: number; color: string }[]
+> = {
+  PGT: [
+    { no: '12617 Exp', name: 'Mangala SF', x: 200, y: 130, color: '#1e3a8a' },
+    { no: '4022 Fgt', name: 'BOXN Freight', x: 440, y: 240, color: '#334155' },
+    { no: '16347 Exp', name: 'Mangalore Exp', x: 525, y: 145, color: '#047857' }
+  ],
+  TVC: [
+    { no: '16343 Exp', name: 'Amritha Exp', x: 200, y: 110, color: '#1e3a8a' },
+    { no: '16127 Exp', name: 'Guruvayur Exp', x: 665, y: 190, color: '#047857' },
+    { no: '56365 Pass', name: 'Fast Passenger', x: 330, y: 225, color: '#d97706' }
+  ],
+  MAS: [
+    { no: '12602 Exp', name: 'Chennai Mail', x: 270, y: 130, color: '#1e3a8a' },
+    { no: '12675 Exp', name: 'Kovai SF', x: 540, y: 130, color: '#047857' },
+    { no: '41002 EMU', name: 'Tambaram Local', x: 290, y: 240, color: '#0284c7' }
+  ],
+  MYS: [
+    { no: '16231 Exp', name: 'Mayiladuturai Exp', x: 210, y: 200, color: '#1e3a8a' },
+    { no: '20607 VB', name: 'Vande Bharat', x: 610, y: 155, color: '#7c3aed' },
+    { no: '56214 Pass', name: 'Hassan Passenger', x: 175, y: 145, color: '#334155' }
+  ]
+};
 
 export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onSectionClick }) => {
   const {
@@ -47,44 +73,61 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
     backToDivision,
     backToSection,
     approveWorkZoneBundle,
-    blocks,
-    requests,
-    conflicts,
-    navigateTo
+    requests
   } = useApp();
 
   const [zoomLevel, setZoomLevel] = useState(1);
   const [filterLayer, setFilterLayer] = useState<'all' | 'active' | 'conflicts'>('all');
   const [showTrains, setShowTrains] = useState(true);
 
-  // Active section for drilldown
-  const activeSectionId = selectedDrillDownSectionId || selectedSectionId || 'C-D';
-  const activeSectionObj = sections.find(s => s.id === activeSectionId) || selectedSection;
+  // Active division network topology
+  const divisionNet = useMemo(() => {
+    return getDivisionNetwork(selectedDivisionId);
+  }, [selectedDivisionId]);
 
-  // Intermediate stations and work zones for the current section
+  const divisionSectionLines = divisionNet.sectionLines;
+  const divisionStations = divisionNet.stations;
+
+  // Active section for drilldown
+  const activeSectionId =
+    selectedDrillDownSectionId ||
+    selectedSectionId ||
+    (divisionNet.sections[0] ? divisionNet.sections[0].id : 'C-D');
+
+  const activeSectionObj: RailwaySection =
+    sections.find(s => s.id === activeSectionId) ||
+    divisionNet.sections.find(s => s.id === activeSectionId) ||
+    divisionNet.sections[0] ||
+    selectedSection;
+
+  // Intermediate stations for the current section
   const sectionStations = getSectionStations(activeSectionId);
   const sectionWorkZones = workZones.filter(wz => wz.sectionId === activeSectionId);
 
-  // Level 1: Major section coordinate lines
-  const divisionSectionLines = [
-    { id: 'A-B', from: 'PGT', to: 'OTP', x1: 120, y1: 140, x2: 290, y2: 140, name: 'Palakkad – Ottappalam', labelX: 205, labelY: 120 },
-    { id: 'B-C', from: 'OTP', to: 'SRR', x1: 290, y1: 140, x2: 450, y2: 190, name: 'Ottappalam – Shoranur Jn', labelX: 370, labelY: 155 },
-    { id: 'C-D', from: 'SRR', to: 'TIR', x1: 450, y1: 190, x2: 620, y2: 120, name: 'Shoranur Jn – Tirur (Demo Section)', labelX: 535, labelY: 140, isShowcase: true },
-    { id: 'D-E', from: 'TIR', to: 'CLT', x1: 620, y1: 120, x2: 780, y2: 120, name: 'Tirur – Kozhikode', labelX: 700, labelY: 100 },
-    { id: 'C-F', from: 'SRR', to: 'TCR', x1: 450, y1: 190, x2: 450, y2: 310, name: 'Shoranur – Thrissur Chord', labelX: 470, labelY: 260 },
-    { id: 'A-G', from: 'PGT', to: 'POY', x1: 120, y1: 140, x2: 120, y2: 290, name: 'Palakkad – Pollachi Branch', labelX: 140, labelY: 220 }
-  ];
-
-  // Major stations on Division Map
-  const divisionStations = [
-    { code: 'PGT', name: 'Palakkad Jn', km: 0, junction: true, x: 120, y: 140 },
-    { code: 'OTP', name: 'Ottappalam', km: 33, junction: false, x: 290, y: 140 },
-    { code: 'SRR', name: 'Shoranur Jn', km: 46, junction: true, x: 450, y: 190 },
-    { code: 'TIR', name: 'Tirur', km: 91, junction: false, x: 620, y: 120 },
-    { code: 'CLT', name: 'Kozhikode', km: 131, junction: true, x: 780, y: 120 },
-    { code: 'TCR', name: 'Thrissur', km: 79, junction: true, x: 450, y: 310 },
-    { code: 'POY', name: 'Pollachi Jn', km: 54, junction: true, x: 120, y: 290 }
-  ];
+  // Fallback to section endpoints if no intermediate nodes recorded
+  const displayStations =
+    sectionStations.length > 0
+      ? sectionStations
+      : [
+          {
+            id: `ST-${activeSectionObj.fromCode}`,
+            code: activeSectionObj.fromCode,
+            name: activeSectionObj.fromName,
+            km: 0,
+            junction: true,
+            sectionId: activeSectionObj.id,
+            nodeType: 'Junction Station' as const
+          },
+          {
+            id: `ST-${activeSectionObj.toCode}`,
+            code: activeSectionObj.toCode,
+            name: activeSectionObj.toName,
+            km: activeSectionObj.lengthKm,
+            junction: true,
+            sectionId: activeSectionObj.id,
+            nodeType: 'Terminal Station' as const
+          }
+        ];
 
   const handleSectionClick = (secId: string) => {
     drillDownToSection(secId);
@@ -108,38 +151,8 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
     }
   };
 
-  // If division is not Palakkad, show realistic limited view with quick switch
-  if (selectedDivisionId !== 'PGT') {
-    return (
-      <div className="schematic-map-container limited-division-view">
-        <div className="non-pgt-division-banner">
-          <div className="banner-icon-col">
-            <Compass size={32} className="text-maroon" />
-          </div>
-          <div className="banner-content-col">
-            <h3>{selectedDivision.name} ({selectedDivision.code})</h3>
-            <p className="text-muted">
-              {selectedDivision.zone} · Headquartered at {selectedDivision.hq} · {selectedDivision.routeKm} Route km
-            </p>
-            <p className="mt-2 text-sm text-slate">
-              Simulated telemetry and basic scheduling feeds are active for this division. The full 
-              hierarchical 3-level corridor drill-down (Division → Section → Stations → Work Zones → SolveX Bundle) 
-              is fully populated on the <strong>Palakkad Division (Shoranur–Tirur Corridor)</strong> demonstration.
-            </p>
-            <div className="banner-actions-row mt-3">
-              <button
-                className="btn-primary-sm"
-                onClick={() => setSelectedDivisionId('PGT')}
-              >
-                <span>Switch to Palakkad Division (Full Demo)</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const showcaseSection =
+    divisionSectionLines.find(l => l.isShowcase) || divisionSectionLines[0];
 
   return (
     <div className={`schematic-map-container ${compact ? 'compact' : 'expanded'}`}>
@@ -281,15 +294,15 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
           <div className="map-interaction-hint-banner">
             <Info size={14} className="text-maroon" />
             <span>
-              <strong>Division Overview:</strong> A line between stations represents an operational{' '}
-              <strong>Railway Section</strong>. Click a section such as{' '}
+              <strong>Division Overview ({selectedDivision.name}):</strong> A line between stations represents an operational{' '}
+              <strong>Railway Section</strong>. Click any section such as{' '}
               <button
                 className="inline-drilldown-link"
-                onClick={() => handleSectionClick('C-D')}
+                onClick={() => handleSectionClick(showcaseSection.id)}
               >
-                Shoranur Jn (SRR) → Tirur (TIR)
+                {showcaseSection.name}
               </button>{' '}
-              to drill down into intermediate stations and maintenance work zones.
+              to drill down into intermediate stations, substations, tracks, and maintenance work zones.
             </span>
           </div>
 
@@ -322,7 +335,7 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
 
             {/* Main Sections */}
             {divisionSectionLines.map(line => {
-              const sec = sections.find(s => s.id === line.id);
+              const sec = sections.find(s => s.id === line.id) || divisionNet.sections.find(s => s.id === line.id);
               const status = sec ? sec.status : 'Available';
               const isSelected = selectedSectionId === line.id;
               const colorClass = getStatusColorClass(status);
@@ -335,10 +348,11 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
                   key={line.id}
                   className={`schematic-track-group ${isSelected ? 'selected' : ''} ${line.isShowcase ? 'showcase-section' : ''}`}
                   onClick={() => handleSectionClick(line.id)}
+                  style={{ cursor: 'pointer' }}
                 >
-                  <title>Click section to view stations ({line.name})</title>
+                  <title>Click section to drill down ({line.name})</title>
 
-                  {/* Highlight Glow for Showcase Section (SRR-TIR) */}
+                  {/* Highlight Glow for Showcase Section */}
                   {line.isShowcase && (
                     <line
                       x1={line.x1}
@@ -366,9 +380,9 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
 
                   {/* Section Badge */}
                   <rect
-                    x={line.labelX - 38}
+                    x={line.labelX - 42}
                     y={line.labelY - 13}
-                    width="76"
+                    width="84"
                     height="22"
                     rx="5"
                     fill="#ffffff"
@@ -409,36 +423,27 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
             {/* Trains on Tracks (Division View) */}
             {showTrains && (
               <g className="train-layer">
-                <g className="train-marker" transform="translate(210, 131)">
-                  <rect x="-35" y="-18" width="70" height="20" rx="10" fill="#1e3a8a" />
-                  <text x="0" y="-4" fill="#ffffff" fontSize="10" fontWeight="bold" textAnchor="middle">
-                    🚆 12617 Exp
-                  </text>
-                </g>
-                <g className="train-marker" transform="translate(450, 250)">
-                  <rect x="-32" y="-18" width="64" height="20" rx="10" fill="#334155" />
-                  <text x="0" y="-4" fill="#ffffff" fontSize="9.5" fontWeight="bold" textAnchor="middle">
-                    🚛 4022 Fgt
-                  </text>
-                </g>
-                <g className="train-marker" transform="translate(545, 142)">
-                  <rect x="-35" y="-18" width="70" height="20" rx="10" fill="#047857" />
-                  <text x="0" y="-4" fill="#ffffff" fontSize="10" fontWeight="bold" textAnchor="middle">
-                    🚆 16347 Exp
-                  </text>
-                </g>
+                {(DIVISION_TRAINS[selectedDivisionId] || DIVISION_TRAINS['PGT']).map((tr, idx) => (
+                  <g key={idx} className="train-marker" transform={`translate(${tr.x}, ${tr.y})`}>
+                    <rect x="-35" y="-18" width="70" height="20" rx="10" fill={tr.color} />
+                    <text x="0" y="-4" fill="#ffffff" fontSize="9.5" fontWeight="bold" textAnchor="middle">
+                      🚆 {tr.no}
+                    </text>
+                  </g>
+                ))}
               </g>
             )}
 
             {/* Division Major Station Nodes */}
             {divisionStations.map(st => {
               const isJunction = st.junction;
+              const textBelow = st.y > 200;
               return (
                 <g key={st.code} className="station-node-group">
                   <circle
                     cx={st.x}
                     cy={st.y}
-                    r={isJunction ? 17 : 13}
+                    r={isJunction ? 16 : 12}
                     fill="#ffffff"
                     stroke="#1e293b"
                     strokeWidth={isJunction ? 3.5 : 2.5}
@@ -447,21 +452,21 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
                   <circle cx={st.x} cy={st.y} r="5" fill="#1e293b" />
                   <text
                     x={st.x}
-                    y={st.y + (st.y > 200 ? 30 : -20)}
+                    y={st.y + (textBelow ? 28 : -20)}
                     className="station-name"
                     textAnchor="middle"
                     fontWeight="700"
-                    fontSize="11.5"
+                    fontSize="11"
                     fill="#0f172a"
                   >
                     {st.name} ({st.code})
                   </text>
                   <text
                     x={st.x}
-                    y={st.y + (st.y > 200 ? 42 : -9)}
+                    y={st.y + (textBelow ? 40 : -9)}
                     className="station-km"
                     textAnchor="middle"
-                    fontSize="9.5"
+                    fontSize="9"
                     fill="#64748b"
                   >
                     {st.km} km {st.junction ? '· Junction' : ''}
@@ -487,7 +492,7 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
               </h3>
             </div>
             <div className="section-meta-chips">
-              <span className="meta-chip">Double Line · 25kV AC</span>
+              <span className="meta-chip">{activeSectionObj.tracks} · 25kV AC</span>
               <span className="meta-chip">{activeSectionObj.lengthKm} Route km</span>
               <span className="meta-chip">MPS: {activeSectionObj.mps} km/h</span>
               <span className="meta-chip badge-workzones-count">{sectionWorkZones.length} Maintenance Work Zones</span>
@@ -502,9 +507,9 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
             </span>
           </div>
 
-          {/* Section SVG: Horizontal dual-line corridor with intermediate stations & work zones */}
+          {/* Section SVG: Dual-line corridor with intermediate stations & work zones */}
           <svg
-            viewBox="0 0 960 290"
+            viewBox="0 0 960 300"
             className="schematic-svg section-zoom-svg"
             style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
           >
@@ -524,59 +529,56 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
               </linearGradient>
             </defs>
 
-            <rect width="960" height="290" fill="#ffffff" rx="8" />
+            <rect width="960" height="300" fill="#ffffff" rx="8" />
 
             {/* Line Labels: UP Line and DN Line */}
-            <text x="35" y="115" fill="#64748b" fontSize="10" fontWeight="bold">
+            <text x="25" y="129" fill="#64748b" fontSize="10" fontWeight="bold">
               UP LINE ➔
             </text>
-            <text x="35" y="175" fill="#64748b" fontSize="10" fontWeight="bold">
+            <text x="25" y="189" fill="#64748b" fontSize="10" fontWeight="bold">
               DN LINE ➔
             </text>
 
-            {/* UP Track (y = 110) */}
-            <line x1="70" y1="110" x2="890" y2="110" stroke="#cbd5e1" strokeWidth="6" strokeLinecap="round" />
-            {/* DN Track (y = 170) */}
-            <line x1="70" y1="170" x2="890" y2="170" stroke="#cbd5e1" strokeWidth="6" strokeLinecap="round" />
+            {/* UP Track (y = 125) */}
+            <line x1="90" y1="125" x2="870" y2="125" stroke="#cbd5e1" strokeWidth="6" strokeLinecap="round" />
+            {/* DN Track (y = 185) */}
+            <line x1="90" y1="185" x2="870" y2="185" stroke="#cbd5e1" strokeWidth="6" strokeLinecap="round" />
 
-            {/* Crossovers between tracks */}
-            <line x1="220" y1="110" x2="260" y2="170" stroke="#94a3b8" strokeWidth="3" strokeDasharray="4 3" />
-            <line x1="560" y1="170" x2="600" y2="110" stroke="#94a3b8" strokeWidth="3" strokeDasharray="4 3" />
-
-            {/* Station nodes coordinates calculation */}
-            {/* Section C-D has 6 stations: SRR (80), PTB (230), PUM (390), KTU (550), TNA (710), TIR (870) */}
+            {/* Dynamic Station Layout Calculation */}
             {(() => {
-              const stationXCoords: Record<string, number> = {
-                SRR: 85,
-                PTB: 240,
-                PUM: 400,
-                KTU: 560,
-                TNA: 720,
-                TIR: 875,
-                // Fallbacks for other sections
-                PGT: 85,
-                PLL: 280,
-                MNY: 480,
-                LDY: 680,
-                OTP: 875
-              };
+              const leftMargin = 95;
+              const rightMargin = 865;
+              const availableWidth = rightMargin - leftMargin;
+              const stationCount = displayStations.length;
+              const step = stationCount > 1 ? availableWidth / (stationCount - 1) : availableWidth;
 
-              // Work zones mapped along the line
-              // Work Zone 1: PTB to PUM on UP line (x1=270, x2=370)
-              // Work Zone 2: PUM to KTU on DN line (x1=430, x2=530)
-              // Work Zone 3: KTU to TNA on UP line (x1=590, x2=690)
-              const workZoneGeom: Record<string, { x1: number; x2: number; y: number; line: string }> = {
-                'WZ-SRR-TIR-01': { x1: 265, x2: 375, y: 110, line: 'UP' },
-                'WZ-SRR-TIR-02': { x1: 425, x2: 535, y: 170, line: 'DN' },
-                'WZ-SRR-TIR-03': { x1: 585, x2: 695, y: 110, line: 'UP' },
-                'WZ-PGT-OTP-01': { x1: 505, x2: 655, y: 110, line: 'UP' }
-              };
+              const stationXMap: Record<string, number> = {};
+              displayStations.forEach((st, idx) => {
+                stationXMap[st.code] = Math.round(leftMargin + idx * step);
+              });
+
+              // Crossover switch lines between tracks
+              const cross1X =
+                displayStations.length >= 3
+                  ? Math.round((stationXMap[displayStations[0].code] + stationXMap[displayStations[1].code]) / 2)
+                  : 260;
+              const cross2X =
+                displayStations.length >= 4
+                  ? Math.round(
+                      (stationXMap[displayStations[displayStations.length - 2].code] +
+                        stationXMap[displayStations[displayStations.length - 1].code]) /
+                        2
+                    )
+                  : 660;
 
               return (
                 <>
+                  {/* Crossovers between tracks */}
+                  <line x1={cross1X - 16} y1="125" x2={cross1X + 16} y2="185" stroke="#94a3b8" strokeWidth="3" strokeDasharray="4 3" />
+                  <line x1={cross2X + 16} y1="185" x2={cross2X - 16} y2="125" stroke="#94a3b8" strokeWidth="3" strokeDasharray="4 3" />
+
                   {/* Highlighted Maintenance Work Zones */}
                   {sectionWorkZones.map(wz => {
-                    const geom = workZoneGeom[wz.id] || { x1: 300, x2: 420, y: 110, line: 'UP' };
                     const isSelected = selectedWorkZoneId === wz.id;
                     const isConflict = wz.conflictStatus === 'Operational Conflict';
                     const isApproved = wz.optimization.approvalStatus === 'Approved by Officer';
@@ -586,19 +588,42 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
                       ? 'url(#workzone-grad-conflict)'
                       : 'url(#workzone-grad-pending)';
 
+                    // Calculate X bounds between start and end station nodes
+                    let startX = stationXMap[wz.startStationCode];
+                    let endX = stationXMap[wz.endStationCode];
+
+                    // If station codes not directly mapped, fallback sensibly
+                    if (startX === undefined || endX === undefined) {
+                      startX = leftMargin + 80;
+                      endX = rightMargin - 80;
+                    }
+
+                    const minX = Math.min(startX, endX);
+                    const maxX = Math.max(startX, endX);
+                    const pad = Math.min(26, (maxX - minX) * 0.18);
+                    const x1 = minX + pad;
+                    const x2 = maxX - pad;
+                    const midX = (x1 + x2) / 2;
+
+                    const isUp = wz.line.includes('UP');
+                    const trackY = isUp ? 125 : 185;
+                    const badgeY = isUp ? 97 : 213;
+                    const chainageY = isUp ? 82 : 233;
+
                     return (
                       <g
                         key={wz.id}
                         className={`workzone-svg-group ${isSelected ? 'active-workzone' : ''}`}
                         onClick={() => drillDownToWorkZone(wz.id)}
+                        style={{ cursor: 'pointer' }}
                       >
                         <title>Maintenance Work Zone: {wz.startStationName} – {wz.endStationName} ({wz.line})</title>
 
                         {/* Outer Glow Halo */}
                         <rect
-                          x={geom.x1 - 4}
-                          y={geom.y - 14}
-                          width={geom.x2 - geom.x1 + 8}
+                          x={x1 - 4}
+                          y={trackY - 14}
+                          width={Math.max(30, x2 - x1 + 8)}
                           height={28}
                           rx="6"
                           fill={isConflict ? '#fee2e2' : '#fef3c7'}
@@ -610,27 +635,39 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
 
                         {/* Heavy Work Zone Possession Track Line */}
                         <line
-                          x1={geom.x1}
-                          y1={geom.y}
-                          x2={geom.x2}
-                          y2={geom.y}
+                          x1={x1}
+                          y1={trackY}
+                          x2={x2}
+                          y2={trackY}
                           stroke={grad}
                           strokeWidth={isSelected ? '10' : '8'}
                           strokeLinecap="round"
                         />
 
+                        {/* Chainage text (Generously spaced vertically away from station labels) */}
+                        <text
+                          x={midX}
+                          y={chainageY}
+                          textAnchor="middle"
+                          fontSize="8.5"
+                          fill="#64748b"
+                          fontWeight="600"
+                        >
+                          {wz.chainage}
+                        </text>
+
                         {/* Work Zone Badge / Flag */}
-                        <g transform={`translate(${(geom.x1 + geom.x2) / 2}, ${geom.y + (geom.line === 'UP' ? -26 : 28)})`}>
+                        <g transform={`translate(${midX}, ${badgeY})`}>
                           <rect
                             x="-58"
-                            y="-10"
+                            y="-9"
                             width="116"
-                            height="20"
+                            height="18"
                             rx="4"
                             fill="#ffffff"
-                            stroke={isSelected ? '#8d2430' : '#b91c1c'}
+                            stroke={isSelected ? '#8d2430' : isConflict ? '#b91c1c' : '#d97706'}
                             strokeWidth={isSelected ? '2' : '1.5'}
-                            filter="drop-shadow(0 1px 2px rgba(0,0,0,0.1))"
+                            filter="drop-shadow(0 1px 2px rgba(0,0,0,0.08))"
                           />
                           <text
                             x="0"
@@ -638,51 +675,44 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
                             textAnchor="middle"
                             fontSize="8.5"
                             fontWeight="bold"
-                            fill={isApproved ? '#166534' : '#991b1b'}
+                            fill={isApproved ? '#166534' : isConflict ? '#991b1b' : '#b45309'}
                           >
-                            {isApproved ? '✓ BLOCK SANCTIONED' : '🔴 WORK ZONE'} ({geom.line})
+                            {isApproved ? '✓ SANCTIONED' : '🔴 WORK ZONE'} ({isUp ? 'UP' : 'DN'})
                           </text>
                         </g>
-
-                        {/* Sub-label showing chainage */}
-                        <text
-                          x={(geom.x1 + geom.x2) / 2}
-                          y={geom.y + (geom.line === 'UP' ? -40 : 42)}
-                          textAnchor="middle"
-                          fontSize="8"
-                          fill="#64748b"
-                          fontWeight="500"
-                        >
-                          {wz.chainage}
-                        </text>
                       </g>
                     );
                   })}
 
                   {/* Simulated Trains inside the section */}
-                  {showTrains && (
+                  {showTrains && displayStations.length >= 2 && (
                     <g className="train-layer">
-                      {/* 12617 Mangala Exp on UP track heading into PTB */}
-                      <g className="train-marker" transform="translate(180, 102)">
-                        <rect x="-35" y="-16" width="70" height="18" rx="9" fill="#1e3a8a" />
-                        <text x="0" y="-3" fill="#ffffff" fontSize="9" fontWeight="bold" textAnchor="middle">
-                          🚆 12617 Exp
+                      <g
+                        className="train-marker"
+                        transform={`translate(${stationXMap[displayStations[0].code] + 65}, 117)`}
+                      >
+                        <rect x="-35" y="-14" width="70" height="17" rx="8" fill="#1e3a8a" />
+                        <text x="0" y="-2" fill="#ffffff" fontSize="8.5" fontWeight="bold" textAnchor="middle">
+                          🚆 {selectedDivisionId === 'TVC' ? '16343 Exp' : selectedDivisionId === 'MAS' ? '12602 Exp' : selectedDivisionId === 'MYS' ? '16231 Exp' : '12617 Exp'}
                         </text>
                       </g>
-                      {/* 16604 Maveli Exp on DN track approaching Kuttippuram */}
-                      <g className="train-marker" transform="translate(620, 162)">
-                        <rect x="-35" y="-16" width="70" height="18" rx="9" fill="#047857" />
-                        <text x="0" y="-3" fill="#ffffff" fontSize="9" fontWeight="bold" textAnchor="middle">
-                          🚆 16604 Exp
-                        </text>
-                      </g>
+                      {displayStations.length >= 3 && (
+                        <g
+                          className="train-marker"
+                          transform={`translate(${stationXMap[displayStations[displayStations.length - 1].code] - 65}, 177)`}
+                        >
+                          <rect x="-35" y="-14" width="70" height="17" rx="8" fill="#047857" />
+                          <text x="0" y="-2" fill="#ffffff" fontSize="8.5" fontWeight="bold" textAnchor="middle">
+                            🚆 {selectedDivisionId === 'TVC' ? '16127 Exp' : selectedDivisionId === 'MAS' ? '12675 Exp' : selectedDivisionId === 'MYS' ? '20607 VB' : '16604 Exp'}
+                          </text>
+                        </g>
+                      )}
                     </g>
                   )}
 
                   {/* Intermediate Stations inside Section */}
-                  {sectionStations.map(st => {
-                    const x = stationXCoords[st.code] || 100;
-                    const isJunction = st.junction;
+                  {displayStations.map(st => {
+                    const x = stationXMap[st.code] || leftMargin;
                     const isTerminal = st.nodeType === 'Terminal Station' || st.nodeType === 'Junction Station';
 
                     return (
@@ -690,9 +720,9 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
                         {/* Vertical Station Stop Bar traversing UP and DN lines */}
                         <line
                           x1={x}
-                          y1="90"
+                          y1="105"
                           x2={x}
-                          y2="190"
+                          y2="205"
                           stroke="#94a3b8"
                           strokeWidth="2"
                           strokeDasharray="2 2"
@@ -701,7 +731,7 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
                         {/* Upper Track Stop Point */}
                         <circle
                           cx={x}
-                          cy="110"
+                          cy="125"
                           r={isTerminal ? 7 : 5}
                           fill="#ffffff"
                           stroke="#1e293b"
@@ -711,29 +741,29 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
                         {/* Lower Track Stop Point */}
                         <circle
                           cx={x}
-                          cy="170"
+                          cy="185"
                           r={isTerminal ? 7 : 5}
                           fill="#ffffff"
                           stroke="#1e293b"
                           strokeWidth={isTerminal ? 3 : 2}
                         />
 
-                        {/* Main Station Icon Circle */}
+                        {/* Center Station Symbol Circle */}
                         <circle
                           cx={x}
-                          cy="140"
+                          cy="155"
                           r={isTerminal ? 14 : 11}
                           fill="#ffffff"
                           stroke={isTerminal ? '#8d2430' : '#1e293b'}
                           strokeWidth={isTerminal ? 3 : 2}
                           className="station-node-point"
                         />
-                        <circle cx={x} cy="140" r="4" fill={isTerminal ? '#8d2430' : '#1e293b'} />
+                        <circle cx={x} cy="155" r="4" fill={isTerminal ? '#8d2430' : '#1e293b'} />
 
-                        {/* Station Name & Code */}
+                        {/* Station Name (Top tier: y = 38) */}
                         <text
                           x={x}
-                          y="62"
+                          y="38"
                           textAnchor="middle"
                           fontWeight="700"
                           fontSize="11.5"
@@ -741,9 +771,11 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
                         >
                           {st.name}
                         </text>
+
+                        {/* Station Code & Chainage (Top tier: y = 52) */}
                         <text
                           x={x}
-                          y="76"
+                          y="52"
                           textAnchor="middle"
                           fontSize="9.5"
                           fontWeight="600"
@@ -751,9 +783,11 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
                         >
                           ({st.code}) · km {st.km}
                         </text>
+
+                        {/* Station Classification (Bottom tier: y = 262) */}
                         <text
                           x={x}
-                          y="218"
+                          y="262"
                           textAnchor="middle"
                           fontSize="9"
                           fill="#64748b"
@@ -986,7 +1020,7 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
               </div>
               <div className="metric-chip">
                 <span className="chip-label">Intermediate Stations</span>
-                <strong>{sectionStations.length} Station Nodes</strong>
+                <strong>{displayStations.length} Station Nodes</strong>
               </div>
               <div className="metric-chip">
                 <span className="chip-label">Maintenance Work Zones</span>
@@ -1000,21 +1034,30 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
 
             {/* Work Zones Quick Selection Strip */}
             <div className="workzones-quick-list">
-              <span className="strip-label font-bold">Select a Maintenance Work Zone to inspect:</span>
-              <div className="workzones-pills-row">
-                {sectionWorkZones.map(wz => (
-                  <button
-                    key={wz.id}
-                    className="wz-pill-button"
-                    onClick={() => drillDownToWorkZone(wz.id)}
-                  >
-                    <Wrench size={13} className="text-maroon" />
-                    <strong>{wz.startStationCode}–{wz.endStationCode} ({wz.line})</strong>
-                    <span className="wz-dept-tag">{wz.departments.join('+')}</span>
-                    <span className={`priority-tag priority-${wz.criticality.toLowerCase()}`}>{wz.criticality}</span>
-                  </button>
-                ))}
-              </div>
+              {sectionWorkZones.length > 0 ? (
+                <>
+                  <span className="strip-label font-bold">Select a Maintenance Work Zone to inspect:</span>
+                  <div className="workzones-pills-row">
+                    {sectionWorkZones.map(wz => (
+                      <button
+                        key={wz.id}
+                        className="wz-pill-button"
+                        onClick={() => drillDownToWorkZone(wz.id)}
+                      >
+                        <Wrench size={13} className="text-maroon" />
+                        <strong>{wz.startStationCode}–{wz.endStationCode} ({wz.line})</strong>
+                        <span className="wz-dept-tag">{wz.departments.join('+')}</span>
+                        <span className={`priority-tag priority-${wz.criticality.toLowerCase()}`}>{wz.criticality}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="d-flex align-center gap-2 text-muted" style={{ padding: '8px 0', fontSize: '12px' }}>
+                  <CheckCircle2 size={16} className="text-success" />
+                  <span>Corridor Clear: No active or planned maintenance blocks on this section. Track capacity 100% available.</span>
+                </div>
+              )}
             </div>
           </div>
         )
@@ -1025,21 +1068,21 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
         <div className="section-inspector">
           <div className="inspector-header">
             <div className="inspector-title">
-              <span className="inspector-section-id">Section {selectedSection.id}</span>
+              <span className="inspector-section-id">Section {activeSectionObj.id}</span>
               <h4>
-                {selectedSection.fromName} ({selectedSection.fromCode}) ↔ {selectedSection.toName} ({selectedSection.toCode})
+                {activeSectionObj.fromName} ({activeSectionObj.fromCode}) ↔ {activeSectionObj.toName} ({activeSectionObj.toCode})
               </h4>
             </div>
             <div className="d-flex align-center gap-2">
               <button
                 className="btn-primary-sm"
-                onClick={() => drillDownToSection(selectedSection.id)}
+                onClick={() => drillDownToSection(activeSectionObj.id)}
               >
                 <span>Drill Down into Section</span>
                 <ChevronRight size={14} />
               </button>
-              <span className={`status-tag status-${selectedSection.status.toLowerCase().replace(/ /g, '-')}`}>
-                {selectedSection.status}
+              <span className={`status-tag status-${activeSectionObj.status.toLowerCase().replace(/ /g, '-')}`}>
+                {activeSectionObj.status}
               </span>
             </div>
           </div>
@@ -1047,19 +1090,19 @@ export const SchematicMap: React.FC<SchematicMapProps> = ({ compact = false, onS
           <div className="inspector-metrics-grid">
             <div className="metric-chip">
               <span className="chip-label">Length & Tracks</span>
-              <strong>{selectedSection.lengthKm} km · {selectedSection.tracks}</strong>
+              <strong>{activeSectionObj.lengthKm} km · {activeSectionObj.tracks}</strong>
             </div>
             <div className="metric-chip">
               <span className="chip-label">Traction & MPS</span>
-              <strong>{selectedSection.mps} km/h · 25kV AC</strong>
+              <strong>{activeSectionObj.mps} km/h · 25kV AC</strong>
             </div>
             <div className="metric-chip">
               <span className="chip-label">Section Work Zones</span>
-              <strong>{getWorkZonesForSection(selectedSection.id).length} zones detected</strong>
+              <strong>{getWorkZonesForSection(activeSectionObj.id).length} zones detected</strong>
             </div>
             <div className="metric-chip">
               <span className="chip-label">Pending Requests</span>
-              <strong>{requests.filter(r => r.sectionId === selectedSection.id).length} departmental requests</strong>
+              <strong>{requests.filter(r => r.sectionId === activeSectionObj.id).length} departmental requests</strong>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect, ReactNode } from 'react';
 import {
   RailwaySection,
   MaintenanceRequest,
@@ -25,6 +25,7 @@ import {
   RAILWAY_DIVISIONS,
   MAINTENANCE_WORK_ZONES,
   getDivisionById,
+  getDivisionNetwork,
   searchHierarchy,
   SearchResultItem
 } from '../data/hierarchyData';
@@ -243,6 +244,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const selectedDivision = useMemo(() => {
     return getDivisionById(selectedDivisionId);
+  }, [selectedDivisionId]);
+
+  // Synchronize division network sections whenever division changes
+  useEffect(() => {
+    const net = getDivisionNetwork(selectedDivisionId);
+    if (net && net.sections && net.sections.length > 0) {
+      setSections(net.sections);
+      // Reset selected section if not in the new division
+      if (!net.sections.some(s => s.id === selectedSectionId)) {
+        setSelectedSectionId(net.sections[0].id);
+      }
+      // If active drilldown belongs to another division, reset drilldown level to division
+      if (selectedDrillDownSectionId && !net.sections.some(s => s.id === selectedDrillDownSectionId)) {
+        setSelectedDrillDownSectionId(null);
+        setSelectedWorkZoneId(null);
+        setCurrentMapLevel('division');
+      }
+    }
   }, [selectedDivisionId]);
 
   const division = useMemo(() => {
