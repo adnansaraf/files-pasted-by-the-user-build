@@ -55,18 +55,22 @@ export const BlockPlannerPage: React.FC = () => {
       {/* Corridor Header & Controls Bar */}
       <div className="planner-control-bar">
         <div className="planner-info-item">
-          <span className="info-label">Active Operational Shift:</span>
+          <Clock size={15} className="text-muted" />
+          <span className="info-label">Active Shift:</span>
           <strong>Shift 3 (Night Possessions 22:00–06:00 IST)</strong>
         </div>
 
         <div className="planner-filters">
           <div className="filter-group">
-            <span className="filter-label">Filter Department:</span>
+            <span className="filter-label">
+              <Filter size={12} style={{ display: 'inline', verticalAlign: '-1px', marginRight: 4 }} />
+              Department:
+            </span>
             <button
               className={`filter-btn-pill ${filterDept === '' ? 'active' : ''}`}
               onClick={() => setFilterDept('')}
             >
-              All 4 Swimlanes
+              All Lanes
             </button>
             <button
               className={`filter-btn-pill ${filterDept === 'Engineering' ? 'active' : ''}`}

@@ -13,7 +13,8 @@ import {
   Zap,
   CheckCircle2,
   AlertTriangle,
-  Info
+  Info,
+  Play
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { GanttTimeline } from '../components/GanttTimeline';
@@ -25,15 +26,18 @@ export const OverviewPage: React.FC = () => {
     requests,
     blocks,
     conflicts,
+    workZones,
     optimizationPlan,
     overrunScenario,
     setSelectedSectionId,
-    selectedDivision
+    selectedDivision,
+    setIsTestRunModalOpen
   } = useApp();
 
   const pendingRequestsCount = requests.filter(r => r.status === 'Pending').length;
-  const plannedBlocksCount = blocks.filter(b => b.status === 'Planned').length + 9; // simulated total 12
+  const plannedBlocksCount = blocks.filter(b => b.status === 'Planned').length;
   const activeBlocksCount = blocks.filter(b => b.status === 'Active' || b.status === 'Delayed').length;
+  const activeWorkZonesCount = workZones.filter(w => w.status === 'Active' || w.status === 'Scheduled').length;
   const criticalConflictsCount = conflicts.filter(c => c.severity === 'Critical').length;
   const highPriorityJobsCount = requests.filter(r => r.priority === 'Critical' || r.priority === 'High').length;
 
@@ -50,6 +54,27 @@ export const OverviewPage: React.FC = () => {
         </div>
 
         <div className="header-actions-group">
+          <button
+            className="btn-accent"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              color: '#ffffff',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(2,132,199,0.25)'
+            }}
+            onClick={() => setIsTestRunModalOpen(true)}
+            title="Launch Realistic 2-Day Timetable Test Run"
+          >
+            <Play size={16} fill="#ffffff" />
+            <span>Run Test Simulation</span>
+          </button>
           <button
             className="btn-secondary"
             onClick={() => navigateTo('What-if Simulator')}
@@ -71,8 +96,8 @@ export const OverviewPage: React.FC = () => {
         <div className="kpi-card" onClick={() => navigateTo('Maintenance Requests')}>
           <div className="kpi-content">
             <span className="kpi-label">Pending Requests</span>
-            <div className="kpi-value">{pendingRequestsCount + 10}</div>
-            <span className="kpi-delta text-warning">+{3} today · 3 depts</span>
+            <div className="kpi-value">{pendingRequestsCount}</div>
+            <span className="kpi-delta text-warning">In active queue · {selectedDivision.code}</span>
           </div>
           <div className="kpi-icon-box bg-maroon-subtle">
             <ClipboardList size={22} className="text-maroon" />
@@ -94,7 +119,7 @@ export const OverviewPage: React.FC = () => {
           <div className="kpi-content">
             <span className="kpi-label">Active Blocks</span>
             <div className="kpi-value">{activeBlocksCount}</div>
-            <span className="kpi-delta text-danger">1 Delay / Overrun Alert</span>
+            <span className="kpi-delta text-danger">{activeWorkZonesCount} Active Work Zones</span>
           </div>
           <div className="kpi-icon-box bg-green-subtle">
             <Activity size={22} className="text-success" />
@@ -116,7 +141,7 @@ export const OverviewPage: React.FC = () => {
           <div className="kpi-content">
             <span className="kpi-label">High Priority Jobs</span>
             <div className="kpi-value">{highPriorityJobsCount}</div>
-            <span className="kpi-delta text-warning">Requires urgent slot</span>
+            <span className="kpi-delta text-warning">Requires priority slot</span>
           </div>
           <div className="kpi-icon-box bg-amber-subtle">
             <ShieldAlert size={22} className="text-amber" />
@@ -126,7 +151,7 @@ export const OverviewPage: React.FC = () => {
         <div className="kpi-card" onClick={() => navigateTo('Reports & Analytics')}>
           <div className="kpi-content">
             <span className="kpi-label">Asset Availability</span>
-            <div className="kpi-value">92.4%</div>
+            <div className="kpi-value">93.2%</div>
             <span className="kpi-delta text-success">↑ +1.8% vs last month</span>
           </div>
           <div className="kpi-icon-box bg-slate-subtle">

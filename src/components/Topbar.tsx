@@ -11,9 +11,11 @@ import {
   Info,
   CheckCircle,
   Database,
-  Radio
+  Radio,
+  Play
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { TestRunModal } from './TestRunModal';
 
 export const Topbar: React.FC = () => {
   const {
@@ -27,6 +29,8 @@ export const Topbar: React.FC = () => {
     searchResults,
     handleSelectSearchResult,
     setIsNewRequestModalOpen,
+    isTestRunModalOpen,
+    setIsTestRunModalOpen,
     navigateTo,
     currentPage
   } = useApp();
@@ -175,6 +179,30 @@ export const Topbar: React.FC = () => {
         )}
       </div>
 
+      {/* Action: 2-Day Test Run */}
+      <button
+        className="btn-accent-sm"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+          color: '#ffffff',
+          border: 'none',
+          padding: '6px 14px',
+          borderRadius: '4px',
+          fontWeight: 600,
+          fontSize: '13px',
+          cursor: 'pointer',
+          boxShadow: '0 2px 4px rgba(2,132,199,0.25)'
+        }}
+        onClick={() => setIsTestRunModalOpen(true)}
+        title="Launch Realistic 2-Day Test Run (2026-09-05/06 Timetable Feed)"
+      >
+        <Play size={13} fill="#ffffff" />
+        <span>2-Day Test Run</span>
+      </button>
+
       {/* Action: New Request */}
       <button
         className="btn-primary-sm"
@@ -244,6 +272,14 @@ export const Topbar: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Realistic 2-Day Timetable Test Run Modal */}
+      {isTestRunModalOpen && (
+        <TestRunModal
+          isOpen={isTestRunModalOpen}
+          onClose={() => setIsTestRunModalOpen(false)}
+        />
+      )}
     </header>
   );
 };

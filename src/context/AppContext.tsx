@@ -19,7 +19,8 @@ import {
   INITIAL_CONFLICTS,
   INITIAL_OPTIMIZATION_PLAN,
   OVERRUN_SCENARIO_DATA,
-  TRAIN_MOVEMENTS
+  TRAIN_MOVEMENTS,
+  getDivisionMockData
 } from '../data/mockData';
 import {
   RAILWAY_DIVISIONS,
@@ -121,6 +122,10 @@ interface AppContextType {
   // New Request Modal
   isNewRequestModalOpen: boolean;
   setIsNewRequestModalOpen: (open: boolean) => void;
+
+  // Realistic 2-Day Timetable Test Run Modal
+  isTestRunModalOpen: boolean;
+  setIsTestRunModalOpen: (open: boolean) => void;
   
   // Actions
   addRequest: (req: {
@@ -169,11 +174,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [currentPage, setCurrentPage] = useState<PageName>('Overview');
   const [selectedDivisionId, setSelectedDivisionId] = useState<string>('PGT');
-  const [selectedSectionId, setSelectedSectionId] = useState<string>('C-D');
+  const [selectedSectionId, setSelectedSectionId] = useState<string>('SRR-CLT');
   const [currentMapLevel, setCurrentMapLevel] = useState<MapHierarchyLevel>('division');
   const [selectedDrillDownSectionId, setSelectedDrillDownSectionId] = useState<string | null>(null);
   const [selectedWorkZoneId, setSelectedWorkZoneId] = useState<string | null>(null);
-  const [workZones, setWorkZones] = useState<MaintenanceWorkZone[]>(MAINTENANCE_WORK_ZONES);
+  const [workZones, setWorkZones] = useState<MaintenanceWorkZone[]>(
+    MAINTENANCE_WORK_ZONES.filter(wz => wz.divisionId === 'PGT')
+  );
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const [sections, setSections] = useState<RailwaySection[]>(SECTIONS);
@@ -187,33 +194,34 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [inspectingBlock, setInspectingBlock] = useState<MaintenanceBlock | null>(null);
   const [inspectingConflict, setInspectingConflict] = useState<OperationalConflict | null>(null);
   const [isNewRequestModalOpen, setIsNewRequestModalOpen] = useState(false);
+  const [isTestRunModalOpen, setIsTestRunModalOpen] = useState(false);
 
   const [notifications, setNotifications] = useState<AppNotification[]>([
     {
       id: 'N-1',
       title: 'Active Block Overrun Alert',
-      desc: 'BLK-204 on PGT–OTP reported expected finish delayed to 04:45 (+45m)',
+      desc: 'BLK-PGT-204 on PGT–SRR reported expected finish delayed to 04:45 (+45m)',
       time: '12 min ago',
       type: 'critical'
     },
     {
       id: 'N-2',
       title: 'Critical Conflict Detected',
-      desc: '12617 Mangala Exp overlaps requested maintenance on Section A–B at 03:15',
+      desc: '12617 Mangala Exp overlaps requested maintenance on PGT–SRR at 03:15',
       time: '24 min ago',
       type: 'critical'
     },
     {
       id: 'N-3',
       title: 'AI Multi-Department Coordination Ready',
-      desc: 'SolveX identified joint block opportunity for Engg + TRD + S&T on PGT–OTP',
+      desc: 'SolveX identified joint block opportunity for Engg + TRD + S&T on PGT–SRR',
       time: '35 min ago',
       type: 'info'
     },
     {
       id: 'N-4',
       title: 'Near Completion',
-      desc: 'BLK-205 on SRR–TIR reached 92% completion. Track handover imminent.',
+      desc: 'BLK-PGT-205 on SRR–CLT reached 92% completion. Track handover imminent.',
       time: '45 min ago',
       type: 'success'
     }
@@ -234,7 +242,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   });
 
   const [whatIfState, setWhatIfState] = useState<WhatIfScenarioState>({
-    sectionId: 'A-B',
+    sectionId: 'PGT-SRR',
     blockStart: '02:00',
     durationHours: 3.0,
     priority: 'High',
@@ -246,7 +254,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return getDivisionById(selectedDivisionId);
   }, [selectedDivisionId]);
 
-  // Synchronize division network sections whenever division changes
+  // Synchronize division network, work zones, requests, blocks, conflicts whenever division changes
   useEffect(() => {
     const net = getDivisionNetwork(selectedDivisionId);
     if (net && net.sections && net.sections.length > 0) {
@@ -255,13 +263,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (!net.sections.some(s => s.id === selectedSectionId)) {
         setSelectedSectionId(net.sections[0].id);
       }
-      // If active drilldown belongs to another division, reset drilldown level to division
-      if (selectedDrillDownSectionId && !net.sections.some(s => s.id === selectedDrillDownSectionId)) {
-        setSelectedDrillDownSectionId(null);
-        setSelectedWorkZoneId(null);
-        setCurrentMapLevel('division');
-      }
     }
+
+    // Load work zones specific to this division
+    const divisionWzs = MAINTENANCE_WORK_ZONES.filter(wz => wz.divisionId === selectedDivisionId);
+    setWorkZones(divisionWzs);
+
+    // Load division-specific mock requests, blocks, conflicts, optimizationPlan, overrunScenario
+    const mockBundle = getDivisionMockData(selectedDivisionId);
+    setRequests(mockBundle.requests);
+    setBlocks(mockBundle.blocks);
+    setConflicts(mockBundle.conflicts);
+    setOptimizationPlan(mockBundle.optimizationPlan);
+    setOverrunScenario(mockBundle.overrunScenario);
+
+    // Reset drilldown level and active selections on division switch
+    setSelectedDrillDownSectionId(null);
+    setSelectedWorkZoneId(null);
+    setCurrentMapLevel('division');
   }, [selectedDivisionId]);
 
   const division = useMemo(() => {
@@ -348,8 +367,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const searchResults = useMemo(() => {
-    return searchHierarchy(searchQuery, sections, selectedDivisionId);
-  }, [searchQuery, sections, selectedDivisionId]);
+    return searchHierarchy(searchQuery, selectedDivisionId);
+  }, [searchQuery, selectedDivisionId]);
 
   const handleSelectSearchResult = (item: SearchResultItem) => {
     if (item.type === 'Division') {
@@ -687,6 +706,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setInspectingConflict,
         isNewRequestModalOpen,
         setIsNewRequestModalOpen,
+        isTestRunModalOpen,
+        setIsTestRunModalOpen,
         addRequest,
         reportDelay,
         markBlockComplete,

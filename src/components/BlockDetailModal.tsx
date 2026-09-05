@@ -163,43 +163,43 @@ export const BlockDetailModal: React.FC = () => {
               </div>
             </form>
           )}
+        </div>
 
-          {/* Action Buttons */}
-          <div className="modal-footer">
-            {!showDelayInput && (
-              <button
-                type="button"
-                className="btn-danger-outline"
-                onClick={() => setShowDelayInput(true)}
-              >
-                <RotateCcw size={15} />
-                <span>Report Delay / Overrun</span>
-              </button>
-            )}
+        {/* Action Buttons */}
+        <div className="modal-footer">
+          {!showDelayInput && (
             <button
               type="button"
-              className="btn-secondary"
+              className="btn-danger-outline"
+              onClick={() => setShowDelayInput(true)}
+            >
+              <RotateCcw size={15} />
+              <span>Report Delay / Overrun</span>
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => {
+              setInspectingBlock(null);
+              navigateTo('Dynamic Rescheduling');
+            }}
+          >
+            Dynamic Rescheduling
+          </button>
+          {inspectingBlock.status !== 'Completed' && (
+            <button
+              type="button"
+              className="btn-success"
               onClick={() => {
+                markBlockComplete(inspectingBlock.id);
                 setInspectingBlock(null);
-                navigateTo('Dynamic Rescheduling');
               }}
             >
-              Dynamic Rescheduling
+              <CheckCircle2 size={15} />
+              <span>Mark Completed & Handover</span>
             </button>
-            {inspectingBlock.status !== 'Completed' && (
-              <button
-                type="button"
-                className="btn-success"
-                onClick={() => {
-                  markBlockComplete(inspectingBlock.id);
-                  setInspectingBlock(null);
-                }}
-              >
-                <CheckCircle2 size={15} />
-                <span>Mark Completed & Handover</span>
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>

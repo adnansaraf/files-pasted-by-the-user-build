@@ -97,16 +97,15 @@ export const LoginPage: React.FC = () => {
                   onChange={e => setSelectedDivisionId(e.target.value)}
                   className="division-select-input"
                 >
-                  <option value="PGT">Palakkad Division (Primary Interactive Demo)</option>
-                  <option value="TVC">Thiruvananthapuram Division</option>
-                  <option value="MAS">Chennai Division</option>
-                  <option value="MYS">Mysuru Division</option>
+                  <option value="PGT">Palakkad Division (PGT) - Primary Demo</option>
+                  <option value="TVC">Thiruvananthapuram Division (TVC)</option>
+                  <option value="MAQ">Mangaluru / Mangalore Division (MAQ)</option>
                 </select>
               </div>
               <small className="form-hint-text">
-                {selectedDivisionId === 'PGT'
-                  ? '✓ Fully populated demo: Shoranur–Tirur section, multi-track stations, work zones & AI bundle recommendations.'
-                  : 'ℹ Selected division loads in standard simulated state. Switch to Palakkad Division for full multi-departmental corridor drill-down.'}
+                {selectedDivisionId === 'PGT' && '✓ Full PGT Network: Podanur–Mangaluru corridor, Shoranur–Nilambur branch, Palakkad Town branch & 2-day timetable feed.'}
+                {selectedDivisionId === 'TVC' && '✓ Full TVC Network: TVM Central, Kollam Jn, Kayamkulam Jn, Kottayam and Alappuzha chord lines.'}
+                {selectedDivisionId === 'MAQ' && '✓ Full MAQ Network: Mangaluru Central, Mangaluru Jn, Panambur Port siding, Surathkal, Udupi & Konkan line.'}
               </small>
             </div>
 
