@@ -1,7 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { supabase } from './_supabaseClient.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Helper to convert "HH:MM" to minutes from midnight
 function timeToMinutes(timeStr) {
