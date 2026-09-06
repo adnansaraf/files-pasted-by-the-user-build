@@ -247,30 +247,24 @@ export const PGT_REQUESTS: MaintenanceRequest[] = [
 
 export const PGT_TRAINS: TrainMovement[] = [
   {
-    trainNo: '12617',
-    trainName: 'Mangala Lakshadweep Superfast',
+    trainNo: '12685',
+    trainName: 'MAS MAQ SF EXP',
     category: 'Superfast Express',
     sectionId: 'PGT-SRR',
-    entryTime: '03:15',
-    exitTime: '03:38',
-    priority: 2,
-    allowedDelayMin: 15
-  },
-  {
-    trainNo: '20631',
-    trainName: 'Kasaragod–TVC Vande Bharat',
-    category: 'Vande Bharat',
-    sectionId: 'CLT-CAN',
-    entryTime: '07:22',
-    exitTime: '07:44',
+    fromStation: 'Palakkad Jn (PGT)',
+    toStation: 'Shoranur Jn (SRR)',
+    entryTime: '00:50',
+    exitTime: '01:40',
     priority: 1,
-    allowedDelayMin: 5
+    allowedDelayMin: 15
   },
   {
     trainNo: '12626',
     trainName: 'Kerala Superfast Express',
     category: 'Superfast Express',
     sectionId: 'PGT-SRR',
+    fromStation: 'Palakkad Jn (PGT)',
+    toStation: 'Shoranur Jn (SRR)',
     entryTime: '01:25',
     exitTime: '01:48',
     priority: 2,
@@ -281,36 +275,56 @@ export const PGT_TRAINS: TrainMovement[] = [
     trainName: 'Mangalore Express',
     category: 'Mail/Express',
     sectionId: 'SRR-CLT',
+    fromStation: 'Shoranur Jn (SRR)',
+    toStation: 'Kozhikode (CLT)',
     entryTime: '02:10',
     exitTime: '02:45',
     priority: 3,
     allowedDelayMin: 25
   },
   {
-    trainNo: '12686',
-    trainName: 'Mangaluru–Chennai Superfast',
-    category: 'Superfast Express',
-    sectionId: 'PGT-SRR',
-    entryTime: '04:10',
-    exitTime: '04:24',
-    priority: 2,
-    allowedDelayMin: 15
-  },
-  {
     trainNo: 'BOXN-4022',
     trainName: 'Cochin Port Container Rake',
     category: 'Freight',
     sectionId: 'PTJ-PGT',
+    fromStation: 'Podanur Jn (PTJ)',
+    toStation: 'Palakkad Jn (PGT)',
     entryTime: '02:40',
     exitTime: '03:15',
     priority: 4,
     allowedDelayMin: 60
   },
   {
+    trainNo: '12617',
+    trainName: 'Mangala Lakshadweep Superfast',
+    category: 'Superfast Express',
+    sectionId: 'PGT-SRR',
+    fromStation: 'Palakkad Jn (PGT)',
+    toStation: 'Shoranur Jn (SRR)',
+    entryTime: '03:15',
+    exitTime: '03:38',
+    priority: 2,
+    allowedDelayMin: 15
+  },
+  {
+    trainNo: '12686',
+    trainName: 'Mangaluru–Chennai Superfast',
+    category: 'Superfast Express',
+    sectionId: 'PGT-SRR',
+    fromStation: 'Palakkad Jn (PGT)',
+    toStation: 'Podanur Jn (PTJ)',
+    entryTime: '04:10',
+    exitTime: '04:24',
+    priority: 2,
+    allowedDelayMin: 15
+  },
+  {
     trainNo: 'BTPN-7810',
     trainName: 'BPCL Petroleum Rake',
     category: 'Freight',
     sectionId: 'PGT-SRR',
+    fromStation: 'Palakkad Jn (PGT)',
+    toStation: 'Shoranur Jn (SRR)',
     entryTime: '05:30',
     exitTime: '06:05',
     priority: 4,
@@ -321,10 +335,48 @@ export const PGT_TRAINS: TrainMovement[] = [
     trainName: 'Palakkad–Ernakulam MEMU',
     category: 'MEMU Passenger',
     sectionId: 'PGT-SRR',
+    fromStation: 'Palakkad Jn (PGT)',
+    toStation: 'Ottappalam (OTP)',
     entryTime: '06:20',
     exitTime: '06:48',
     priority: 4,
     allowedDelayMin: 20
+  },
+  {
+    trainNo: '20631',
+    trainName: 'Kasaragod–TVC Vande Bharat',
+    category: 'Vande Bharat',
+    sectionId: 'CLT-CAN',
+    fromStation: 'Kozhikode (CLT)',
+    toStation: 'Kannur (CAN)',
+    entryTime: '07:22',
+    exitTime: '07:44',
+    priority: 1,
+    allowedDelayMin: 5
+  },
+  {
+    trainNo: '22610',
+    trainName: 'Intercity Superfast Express',
+    category: 'Superfast Intercity',
+    sectionId: 'SRR-TIR',
+    fromStation: 'Shoranur Jn (SRR)',
+    toStation: 'Tirur (TIR)',
+    entryTime: '08:15',
+    exitTime: '08:45',
+    priority: 2,
+    allowedDelayMin: 15
+  },
+  {
+    trainNo: '22476',
+    trainName: 'CBE HSR AC Superfast',
+    category: 'Superfast Express',
+    sectionId: 'PGT-SRR',
+    fromStation: 'Palakkad Jn (PGT)',
+    toStation: 'Shoranur Jn (SRR)',
+    entryTime: '14:30',
+    exitTime: '14:55',
+    priority: 2,
+    allowedDelayMin: 15
   }
 ];
 

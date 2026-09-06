@@ -173,6 +173,7 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
                         <div className="block-content">
                           <div className="block-badge-row">
                             <span className="block-id">{b.id}</span>
+                            <span className="block-sec-tag">{b.sectionId}</span>
                             {b.status === 'Delayed' && <span className="block-tag tag-delayed">+Delay</span>}
                           </div>
                           <div className="block-details">
@@ -205,6 +206,7 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
                           <div className="block-content">
                             <div className="block-badge-row">
                               <span className="block-id">{req.id}</span>
+                              <span className="block-sec-tag">{req.sectionId}</span>
                               <span className={`block-tag ${isConflict ? 'tag-delayed' : ''}`}>
                                 {isConflict ? 'Conflict' : 'Requested'}
                               </span>
@@ -254,6 +256,7 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
                         <div className="block-content">
                           <div className="block-badge-row">
                             <span className="block-id">{b.id}</span>
+                            <span className="block-sec-tag">{b.sectionId}</span>
                           </div>
                           <div className="block-details">
                             <span className="block-title">{b.sectionName}: {b.workSummary}</span>
@@ -282,6 +285,7 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
                           <div className="block-content">
                             <div className="block-badge-row">
                               <span className="block-id">{req.id}</span>
+                              <span className="block-sec-tag">{req.sectionId}</span>
                               <span className={`block-tag ${isConflict ? 'tag-delayed' : ''}`}>
                                 {isConflict ? 'Conflict' : 'Requested'}
                               </span>
@@ -331,6 +335,7 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
                         <div className="block-content">
                           <div className="block-badge-row">
                             <span className="block-id">{b.id}</span>
+                            <span className="block-sec-tag">{b.sectionId}</span>
                           </div>
                           <div className="block-details">
                             <span className="block-title">{b.sectionName}: {b.workSummary}</span>
@@ -362,6 +367,7 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
                           <div className="block-content">
                             <div className="block-badge-row">
                               <span className="block-id">{req.id}</span>
+                              <span className="block-sec-tag">{req.sectionId}</span>
                               <span className={`block-tag ${isConflict ? 'tag-delayed' : ''}`}>
                                 {isConflict ? 'Conflict' : 'Requested'}
                               </span>
@@ -397,14 +403,33 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
 
                 return (
                   <div
-                    key={t.trainNo}
+                    key={`${t.trainNo}-${t.sectionId}-${t.entryTime}`}
                     className={`gantt-train-slot ${isConflicting ? 'slot-conflict' : ''} cat-${t.category.toLowerCase().replace(/ /g, '-')}`}
                     style={{ left: `${startP}%`, width: `${widthP}%`, cursor: 'pointer' }}
                     onClick={() => setSelectedTrain(t)}
-                    title={`Click to inspect ${t.trainNo} ${t.trainName} on Section ${t.sectionId} (${t.entryTime}–${t.exitTime})${isConflicting ? ' [AI CONFLICT DETECTED]' : ''}`}
                   >
-                    <span className="train-slot-no">{t.trainNo}</span>
-                    <span className="train-slot-sec">{t.sectionId}</span>
+                    <div className="train-slot-text">
+                      <span className="train-slot-no">{t.trainNo}</span>
+                      <span className="train-slot-dot">·</span>
+                      <span className="train-slot-sec">{t.sectionId}</span>
+                    </div>
+
+                    {/* Rich Instant Hover Popover */}
+                    <div className="train-hover-popover">
+                      <div className="popover-header">
+                        <span>Train {t.trainNo} · {t.trainName}</span>
+                        {isConflicting && <span className="popover-badge-conflict">⚠ CONFLICT</span>}
+                      </div>
+                      <div className="popover-body">
+                        <div><span>Occupying Section:</span> <strong>{t.sectionId}</strong></div>
+                        <div><span>Corridor Stations:</span> {t.fromStation || t.sectionId.split('-')[0]} ➔ {t.toStation || t.sectionId.split('-')[1]}</div>
+                        <div><span>Passage Window:</span> <strong>{t.entryTime} → {t.exitTime} IST</strong></div>
+                        <div><span>Category:</span> {t.category} (Priority {t.priority})</div>
+                        <div style={{ marginTop: '4px', fontSize: '10px', color: '#94a3b8', fontStyle: 'italic' }}>
+                          Click to open operational control card
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 );
               })}

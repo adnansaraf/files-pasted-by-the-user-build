@@ -1282,39 +1282,131 @@ button {
 
 .gantt-train-slot {
   position: absolute;
-  top: 9px;
-  height: 28px;
+  top: 8px;
+  height: 30px;
+  min-width: 96px;
   border-radius: 5px;
   background: #1e293b;
   color: #ffffff;
-  padding: 3px 8px;
-  font-size: 9.5px;
+  padding: 2px 8px;
+  font-size: 10px;
   font-family: var(--font-mono);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 4px;
   border: 1px solid #334155;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  transition: transform 0.12s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  white-space: nowrap;
+  user-select: none;
+  z-index: 5;
 }
 
 .gantt-train-slot:hover {
-  transform: translateY(-1px);
-  z-index: 15;
+  transform: translateY(-2px);
+  z-index: 50;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  border-color: #64748b;
+}
+
+.train-slot-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .train-slot-no {
   font-weight: 700;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
+  color: #f8fafc;
+}
+
+.train-slot-dot {
+  opacity: 0.5;
+  font-weight: bold;
 }
 
 .train-slot-sec {
-  font-size: 8px;
-  opacity: 0.75;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 1px 4px;
-  border-radius: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.18);
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.2px;
+}
+
+/* Rich hover popover */
+.train-hover-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  border: 1px solid #334155;
+  z-index: 999;
+}
+
+.gantt-train-slot:hover .train-hover-popover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 4px;
+}
+
+.popover-badge-conflict {
+  background: #ef4444;
+  color: #fff;
+  font-size: 9.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 800;
+}
+
+.popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: #cbd5e1;
+  font-size: 11px;
+}
+
+.popover-body span {
+  color: #94a3b8;
+  margin-right: 4px;
+}
+
+.block-sec-tag {
+  font-size: 8.5px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.2px;
+  margin-left: 4px;
 }
 
 .slot-conflict {

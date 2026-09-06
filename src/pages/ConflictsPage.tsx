@@ -131,7 +131,7 @@ export const ConflictsPage: React.FC = () => {
               <span><strong>Requested Block Window:</strong> {activeConflict.blockTime}</span>
               <span><strong>Collision Point:</strong> {activeConflict.conflictPointTime} IST</span>
               <span>
-                <strong>Conflicting Service:</strong> {activeConflict.conflictingTrain.trainName} ({activeConflict.conflictingTrain.trainNo})
+                <strong>Conflicting Service:</strong> {activeConflict.conflictingTrain.trainNo} · {activeConflict.conflictingTrain.trainName} (Section <span className="block-sec-tag">{activeConflict.sectionId}</span>)
               </span>
             </div>
           </div>
@@ -246,7 +246,11 @@ export const ConflictsPage: React.FC = () => {
                 <td>{c.sectionName}</td>
                 <td>{c.blockTime}</td>
                 <td>
-                  {c.conflictingTrain.trainName} ({c.conflictingTrain.trainNo})
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <strong>{c.conflictingTrain.trainNo}</strong>
+                    <span className="block-sec-tag">{c.sectionId}</span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--slate-500)' }}>{c.conflictingTrain.trainName}</div>
                 </td>
                 <td><strong className="text-danger">{c.conflictPointTime}</strong></td>
                 <td>

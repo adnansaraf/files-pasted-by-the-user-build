@@ -168,8 +168,10 @@ export interface MaintenanceRequest {
 export interface TrainMovement {
   trainNo: string;
   trainName: string;
-  category: 'Vande Bharat' | 'Superfast Express' | 'Mail/Express' | 'Freight' | 'MEMU Passenger';
+  category: 'Vande Bharat' | 'Superfast Express' | 'Mail/Express' | 'Freight' | 'MEMU Passenger' | 'Superfast Intercity';
   sectionId: string;
+  fromStation?: string;
+  toStation?: string;
   entryTime: string; // '03:15'
   exitTime: string;  // '03:42'
   priority: number; // 1 = highest
