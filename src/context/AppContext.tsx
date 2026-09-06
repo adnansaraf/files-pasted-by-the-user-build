@@ -194,12 +194,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   );
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const samplePrefixes = ['REQ-4608e2ef', 'REQ-8a8cbb8e', 'REQ-0424c9a0', 'REQ-22bd94f8', 'REQ-b218c599'];
+  const samplePrefixes = [
+    'REQ-4608e2ef',
+    'REQ-8a8cbb8e',
+    'REQ-0424c9a0',
+    'REQ-22bd94f8',
+    'REQ-b218c599',
+    'REQ-005c4695',
+    '005c4695'
+  ];
   const isSampleRequest = (r: { id: string; workType?: string; description?: string }) => {
-    const id = r.id || '';
+    const id = (r.id || '').toLowerCase();
     const wt = (r.workType || '').toLowerCase();
     const desc = (r.description || '').toLowerCase();
-    return samplePrefixes.some(p => id.startsWith(p)) || wt.includes('kuthira') || desc.includes('kuthira');
+    return samplePrefixes.some(p => id.includes(p.toLowerCase())) ||
+           id.includes('005c4695') ||
+           wt.includes('kuthira') || desc.includes('kuthira') ||
+           wt.includes('sample') || desc.includes('sample') ||
+           wt.includes('test') || desc.includes('test') ||
+           wt.includes('rail welding') || desc.includes('rail welding') ||
+           id.startsWith('req-1024') || id.startsWith('req-1025') || id.startsWith('req-1026') ||
+           id.startsWith('req-1027') || id.startsWith('req-1028') || id.startsWith('req-1029') ||
+           id.startsWith('req-1030') || id.startsWith('req-maq') || id.startsWith('req-tvc');
   };
 
   const [sections, setSections] = useState<RailwaySection[]>(SECTIONS);
@@ -232,7 +248,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [conflicts, setConflicts] = useState<OperationalConflict[]>(() => {
     try {
       const saved = localStorage.getItem('solvex_conflicts');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed: OperationalConflict[] = JSON.parse(saved);
+      const clean = parsed.filter(c => !c.id.includes('005c4695') && !samplePrefixes.some(p => c.id.toLowerCase().includes(p.toLowerCase())));
+      localStorage.setItem('solvex_conflicts', JSON.stringify(clean));
+      return clean;
     } catch {
       return [];
     }
@@ -328,6 +348,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           } catch {}
 
           // If sample requests were returned by Supabase, purge them on the server
+          fetch('/api/process-request?id=005c4695', { method: 'DELETE' }).catch(() => {});
           if (cleanLoaded.length !== loadedRequests.length) {
             fetch('/api/process-request?purgeSample=true', { method: 'DELETE' }).catch(() => {});
           }

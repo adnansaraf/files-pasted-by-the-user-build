@@ -85,17 +85,32 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
     if (onBlockClick) onBlockClick(b);
   };
 
+  const isSample = (r: { id: string; workType?: string; description?: string }) => {
+    const id = (r.id || '').toLowerCase();
+    const wt = (r.workType || '').toLowerCase();
+    const desc = (r.description || '').toLowerCase();
+    return id.includes('005c4695') ||
+           id.includes('sample') ||
+           wt.includes('rail welding') || desc.includes('rail welding') ||
+           wt.includes('sample') || desc.includes('sample') ||
+           wt.includes('test') || desc.includes('test') ||
+           id.startsWith('req-1024') || id.startsWith('req-1025') || id.startsWith('req-1026') ||
+           id.startsWith('req-1027') || id.startsWith('req-1028') || id.startsWith('req-1029') ||
+           id.startsWith('req-1030');
+  };
+
   // Filter blocks and requests by department
+  const validRequests = requests.filter(r => !isSample(r));
   const engBlocks = blocks.filter(b => b.departments.includes('Engineering'));
-  const engRequests = requests.filter(r => r.dept === 'Engineering');
+  const engRequests = validRequests.filter(r => r.dept === 'Engineering');
   const hasEng = engBlocks.length > 0 || engRequests.length > 0;
 
   const trdBlocks = blocks.filter(b => b.departments.includes('TRD'));
-  const trdRequests = requests.filter(r => r.dept === 'TRD');
+  const trdRequests = validRequests.filter(r => r.dept === 'TRD');
   const hasTrd = trdBlocks.length > 0 || trdRequests.length > 0;
 
   const stBlocks = blocks.filter(b => b.departments.includes('S&T'));
-  const stRequests = requests.filter(r => r.dept === 'S&T');
+  const stRequests = validRequests.filter(r => r.dept === 'S&T');
   const hasSt = stBlocks.length > 0 || stRequests.length > 0;
 
   return (

@@ -102,148 +102,7 @@ export const SECTIONS: RailwaySection[] = [
 // PALAKKAD DIVISION (PGT) DATASET
 // ==========================================
 
-export const PGT_REQUESTS: MaintenanceRequest[] = [
-  {
-    id: 'REQ-1024',
-    dept: 'Engineering',
-    sectionId: 'PGT-SRR',
-    sectionName: 'PGT–SRR (Palakkad–Shoranur)',
-    workType: 'Track Geometry Correction & Tamping',
-    description: '09-3X Dynamic Tamper deep tamping on UP line from km 531/0 to 534/2 including turnout packing near Parli–Mankara.',
-    requestedDuration: 3.0,
-    predictedDuration: 3.4,
-    historicalSamples: [2.9, 3.2, 3.5, 3.4, 3.6],
-    preferredTimeWindow: '02:00–05:00',
-    priority: 'High',
-    priorityScore: 87,
-    factors: { safetyImpact: 26, assetCriticality: 22, urgency: 18, failureProbability: 11, operationalImpact: 10 },
-    deadline: 'Tonight (Shift 3)',
-    constraints: 'Requires continuous traffic block; speed restriction of 45 km/h post-work.',
-    resources: 'Duomatic 09-3X, 1 JE/P-Way, 18 Gangmen',
-    status: 'Pending',
-    submissionDate: '2026-09-04 14:30'
-  },
-  {
-    id: 'REQ-1025',
-    dept: 'TRD',
-    sectionId: 'PGT-SRR',
-    sectionName: 'PGT–SRR (Palakkad–Shoranur)',
-    workType: 'OHE Contact Wire & Dropper Inspection',
-    description: 'Annual tower wagon inspection of 25kV catenary wire, dropper adjustment, and insulator washing between Mankara and Ottappalam.',
-    requestedDuration: 2.0,
-    predictedDuration: 2.3,
-    historicalSamples: [2.0, 2.2, 2.4, 2.3, 2.5],
-    preferredTimeWindow: '02:00–05:00',
-    priority: 'Medium',
-    priorityScore: 68,
-    factors: { safetyImpact: 19, assetCriticality: 18, urgency: 14, failureProbability: 9, operationalImpact: 8 },
-    deadline: 'Tonight (Shift 3)',
-    constraints: 'Requires 25kV traction power shutdown (OHE isolated from Shoranur TSS).',
-    resources: '8-Wheeler Tower Wagon, 1 SSE/TRD, 6 Linemen',
-    status: 'Pending',
-    submissionDate: '2026-09-04 16:15'
-  },
-  {
-    id: 'REQ-1026',
-    dept: 'S&T',
-    sectionId: 'PGT-SRR',
-    sectionName: 'PGT–SRR (Palakkad–Shoranur)',
-    workType: 'Signal Relay & Axle Counter Calibration',
-    description: 'Routine calibration of HASSDAC digital axle counters and point machine 102B insulation testing at Lakkidi.',
-    requestedDuration: 1.0,
-    predictedDuration: 1.2,
-    historicalSamples: [1.0, 1.1, 1.3, 1.2, 1.2],
-    preferredTimeWindow: '03:00–04:00',
-    priority: 'High',
-    priorityScore: 82,
-    factors: { safetyImpact: 24, assetCriticality: 21, urgency: 16, failureProbability: 12, operationalImpact: 9 },
-    deadline: 'Tonight (Shift 3)',
-    constraints: 'Co-terminus with Engineering block; signal failure alarm bypass needed.',
-    resources: 'Digital Megger test kit, 1 SSE/Signal, 2 Technicians',
-    status: 'Pending',
-    submissionDate: '2026-09-04 17:00'
-  },
-  {
-    id: 'REQ-1027',
-    dept: 'Engineering',
-    sectionId: 'SRR-CLT',
-    sectionName: 'SRR–CLT (Shoranur–Kozhikode)',
-    workType: 'Rail Weld Renewal & Ultrasonic Flaw Detection',
-    description: 'Thermit weld replacement at km 598/2-4 near Kuttippuram–Tirur following USFD defect detection.',
-    requestedDuration: 2.5,
-    predictedDuration: 2.8,
-    historicalSamples: [2.6, 2.7, 2.9, 3.0, 2.8],
-    preferredTimeWindow: '05:00–07:30',
-    priority: 'Critical',
-    priorityScore: 94,
-    factors: { safetyImpact: 30, assetCriticality: 24, urgency: 20, failureProbability: 12, operationalImpact: 8 },
-    deadline: 'Within 24h',
-    constraints: 'Fishplated temporary joint in place with 20 km/h caution order.',
-    resources: 'Thermit welding kit, 1 PWI, 12 Trackmen',
-    status: 'Planned',
-    submissionDate: '2026-09-04 18:20'
-  },
-  {
-    id: 'REQ-1028',
-    dept: 'TRD',
-    sectionId: 'SRR-CLT',
-    sectionName: 'SRR–CLT (Shoranur–Kozhikode)',
-    workType: 'OHE Mast Foundation & Cantilever Audit',
-    description: 'Audit of cantilever assemblies and corrosion inspection on Tirur TSS feeding zone.',
-    requestedDuration: 2.0,
-    predictedDuration: 2.2,
-    historicalSamples: [2.1, 2.2, 2.3, 2.0, 2.4],
-    preferredTimeWindow: '01:30–03:30',
-    priority: 'High',
-    priorityScore: 79,
-    factors: { safetyImpact: 22, assetCriticality: 20, urgency: 16, failureProbability: 11, operationalImpact: 10 },
-    deadline: '06 Sep 2026',
-    constraints: 'Requires auxiliary feeder de-energization at Tirur TSS.',
-    resources: 'Tower wagon unit 4, 1 JE/TRD, 4 Staff',
-    status: 'Planned',
-    submissionDate: '2026-09-04 11:10'
-  },
-  {
-    id: 'REQ-1029',
-    dept: 'S&T',
-    sectionId: 'CLT-CAN',
-    sectionName: 'CLT–CAN (Kozhikode–Kannur)',
-    workType: 'Audio Frequency Track Circuit (AFTC) Testing',
-    description: 'Testing of tuned zones and receiver units across 4 consecutive track circuits near Vadakara.',
-    requestedDuration: 1.5,
-    predictedDuration: 1.7,
-    historicalSamples: [1.4, 1.6, 1.8, 1.7, 1.9],
-    preferredTimeWindow: '04:00–05:30',
-    priority: 'Medium',
-    priorityScore: 61,
-    factors: { safetyImpact: 16, assetCriticality: 16, urgency: 13, failureProbability: 9, operationalImpact: 7 },
-    deadline: '06 Sep 2026',
-    constraints: 'Non-interfering with adjacent UP mainline.',
-    resources: 'AFTC analyzer, 1 Telecom Inspector, 2 Techs',
-    status: 'Pending',
-    submissionDate: '2026-09-04 09:40'
-  },
-  {
-    id: 'REQ-1030',
-    dept: 'Engineering',
-    sectionId: 'SRR-NIL',
-    sectionName: 'SRR–NIL (Shoranur–Nilambur Road)',
-    workType: 'Ballast Deep Screening Machine (BCM)',
-    description: 'Shoulder ballast cleaning and muck removal on branch line between Angadippuram and Melattur.',
-    requestedDuration: 4.0,
-    predictedDuration: 4.5,
-    historicalSamples: [4.1, 4.3, 4.6, 4.4, 4.7],
-    preferredTimeWindow: '01:00–05:00',
-    priority: 'High',
-    priorityScore: 83,
-    factors: { safetyImpact: 24, assetCriticality: 22, urgency: 17, failureProbability: 11, operationalImpact: 9 },
-    deadline: '07 Sep 2026',
-    constraints: 'Full single line traffic block possession.',
-    resources: 'Plasser BCM rake, 2 Loco Pilots, 20 Gangmen',
-    status: 'Pending',
-    submissionDate: '2026-09-04 08:15'
-  }
-];
+export const PGT_REQUESTS: MaintenanceRequest[] = [];
 
 export const PGT_TRAINS: TrainMovement[] = [
   {
@@ -386,7 +245,7 @@ export const PGT_BLOCKS: MaintenanceBlock[] = [
     sectionId: 'PGT-SRR',
     sectionName: 'PGT–SRR (Palakkad–Shoranur)',
     departments: ['Engineering', 'TRD'],
-    requestIds: ['REQ-1024', 'REQ-1025'],
+    requestIds: [],
     workSummary: 'Track geometry tamping + OHE catenary dropper overhaul (Parli–Mankara)',
     scheduledStart: '02:00',
     scheduledEnd: '04:00',
@@ -407,7 +266,7 @@ export const PGT_BLOCKS: MaintenanceBlock[] = [
     sectionId: 'SRR-CLT',
     sectionName: 'SRR–CLT (Shoranur–Kozhikode)',
     departments: ['S&T'],
-    requestIds: ['REQ-1028'],
+    requestIds: [],
     workSummary: 'Axle counter heads replacement & cable insulation test (Kuttippuram–Tirur)',
     scheduledStart: '01:30',
     scheduledEnd: '03:30',
@@ -427,7 +286,7 @@ export const PGT_BLOCKS: MaintenanceBlock[] = [
     sectionId: 'CLT-CAN',
     sectionName: 'CLT–CAN (Kozhikode–Kannur)',
     departments: ['Engineering'],
-    requestIds: ['REQ-1029'],
+    requestIds: [],
     workSummary: 'AFTC calibration and signal testing near Vadakara',
     scheduledStart: '05:00',
     scheduledEnd: '07:00',
@@ -442,113 +301,7 @@ export const PGT_BLOCKS: MaintenanceBlock[] = [
   }
 ];
 
-export const PGT_CONFLICTS: OperationalConflict[] = [
-  {
-    id: 'CONF-PGT-801',
-    severity: 'Critical',
-    sectionId: 'PGT-SRR',
-    sectionName: 'PGT–SRR (Palakkad–Shoranur)',
-    blockTime: '02:00–05:00',
-    conflictPointTime: '03:15',
-    conflictingTrain: PGT_TRAINS[0], // 12617 Mangala Exp
-    description: 'Requested maintenance block overlaps high-priority passenger movement (12617 Mangala Superfast).',
-    impactScore: 89,
-    status: 'Unresolved',
-    alternatives: [
-      {
-        optionId: 'ALT-1',
-        label: 'Option A: Advance Block Window (01:00–04:00)',
-        window: '01:00–04:00',
-        trainImpact: 'Low Train Impact (8 min delay to 12626)',
-        trainDelayMin: 8,
-        isRecommended: true,
-        reason: 'Avoids prime passenger rush; 12617 passes safely at 03:15 on cleared track.'
-      },
-      {
-        optionId: 'ALT-2',
-        label: 'Option B: Retain Requested Window (02:00–05:00)',
-        window: '02:00–05:00',
-        trainImpact: 'Severe Passenger Disruption (35 min detention)',
-        trainDelayMin: 35,
-        isRecommended: false,
-        reason: 'Requires regulating 12617 at Palakkad outer loop; high punctuality loss.'
-      },
-      {
-        optionId: 'ALT-3',
-        label: 'Option C: Postpone to Post-Dawn Window (04:30–07:30)',
-        window: '04:30–07:30',
-        trainImpact: 'High Congestion (Conflicts with 06797 MEMU & Freight)',
-        trainDelayMin: 24,
-        isRecommended: false,
-        reason: 'Collides with early morning commuter trains and Palakkad yard shunting.'
-      }
-    ]
-  },
-  {
-    id: 'CONF-PGT-802',
-    severity: 'High',
-    sectionId: 'SRR-CLT',
-    sectionName: 'SRR–CLT (Shoranur–Kozhikode)',
-    blockTime: '04:00–05:30',
-    conflictPointTime: '04:45',
-    conflictingTrain: {
-      trainNo: '16606',
-      trainName: 'Ernad Express',
-      category: 'Mail/Express',
-      sectionId: 'SRR-CLT',
-      entryTime: '04:45',
-      exitTime: '05:12',
-      priority: 3,
-      allowedDelayMin: 20
-    },
-    description: 'S&T AFTC testing on track circuits interferes with automatic block signalling ahead of Ernad Express.',
-    impactScore: 72,
-    status: 'Unresolved',
-    alternatives: [
-      {
-        optionId: 'ALT-4',
-        label: 'Option A: Reschedule to 02:00–03:30',
-        window: '02:00–03:30',
-        trainImpact: 'Zero Train Delay',
-        trainDelayMin: 0,
-        isRecommended: true,
-        reason: 'Completely clear of passenger traffic.'
-      },
-      {
-        optionId: 'ALT-5',
-        label: 'Option B: Restrict to UP loop line only',
-        window: '04:00–05:30',
-        trainImpact: '5 min speed restriction',
-        trainDelayMin: 5,
-        isRecommended: false,
-        reason: 'Partial testing only, requires second visit.'
-      }
-    ]
-  },
-  {
-    id: 'CONF-PGT-803',
-    severity: 'Medium',
-    sectionId: 'SRR-NIL',
-    sectionName: 'SRR–NIL (Shoranur–Nilambur Road)',
-    blockTime: '01:00–05:00',
-    conflictPointTime: '02:40',
-    conflictingTrain: PGT_TRAINS[5], // Freight
-    description: 'BCM Ballast screening block holds container freight on single line branch.',
-    impactScore: 48,
-    status: 'Unresolved',
-    alternatives: [
-      {
-        optionId: 'ALT-6',
-        label: 'Option A: Regulate freight at Angadippuram loop',
-        window: '01:00–05:00',
-        trainImpact: '25 min freight regulation (Acceptable)',
-        trainDelayMin: 25,
-        isRecommended: true,
-        reason: 'Freight has 60 min delay tolerance buffer.'
-      }
-    ]
-  }
-];
+export const PGT_CONFLICTS: OperationalConflict[] = [];
 
 export const PGT_OPTIMIZATION_PLAN: OptimizationPlan = {
   id: 'OPT-PGT-308',
@@ -697,88 +450,7 @@ export const PGT_OVERRUN_SCENARIO: OverrunScenario = {
 // MANGALURU DIVISION (MAQ) DATASET
 // ==========================================
 
-export const MAQ_REQUESTS: MaintenanceRequest[] = [
-  {
-    id: 'REQ-MAQ-201',
-    dept: 'Engineering',
-    sectionId: 'SL-UD',
-    sectionName: 'SL–UD (Surathkal–Udupi)',
-    workType: 'Track Packing & Joint Sleepers Replacement',
-    description: 'Replacement of damaged PSC sleepers and track alignment around km 742/2 near Nandikoor.',
-    requestedDuration: 2.5,
-    predictedDuration: 2.8,
-    historicalSamples: [2.4, 2.7, 2.9, 2.8, 3.0],
-    preferredTimeWindow: '02:00–04:30',
-    priority: 'High',
-    priorityScore: 84,
-    factors: { safetyImpact: 25, assetCriticality: 21, urgency: 17, failureProbability: 11, operationalImpact: 10 },
-    deadline: '06 Sep 2026',
-    constraints: 'Requires complete track possession.',
-    resources: '1 PWI/Surathkal, 14 Track Maintainers',
-    status: 'Pending',
-    submissionDate: '2026-09-04 15:00'
-  },
-  {
-    id: 'REQ-MAQ-202',
-    dept: 'TRD',
-    sectionId: 'UD-KUDA',
-    sectionName: 'UD–KUDA (Udupi–Kundapura)',
-    workType: 'OHE Mast Inspection & Insulator Washing',
-    description: 'Insulator washing along coastal salinity zone between Udupi and Kundapura.',
-    requestedDuration: 2.0,
-    predictedDuration: 2.2,
-    historicalSamples: [1.9, 2.1, 2.3, 2.2, 2.4],
-    preferredTimeWindow: '01:30–03:30',
-    priority: 'Medium',
-    priorityScore: 66,
-    factors: { safetyImpact: 18, assetCriticality: 17, urgency: 13, failureProbability: 10, operationalImpact: 8 },
-    deadline: '07 Sep 2026',
-    constraints: 'Requires 25kV OHE isolation at Udupi TSS.',
-    resources: 'Tower Wagon MAQ-1, 1 SSE/TRD, 5 Linemen',
-    status: 'Pending',
-    submissionDate: '2026-09-04 16:20'
-  },
-  {
-    id: 'REQ-MAQ-203',
-    dept: 'S&T',
-    sectionId: 'KUDA-BYNR',
-    sectionName: 'KUDA–BYNR (Kundapura–Byndoor)',
-    workType: 'Electronic Interlocking Maintenance',
-    description: 'Card diagnostic and standby CPU failover verification at Byndoor cabin.',
-    requestedDuration: 1.5,
-    predictedDuration: 1.6,
-    historicalSamples: [1.4, 1.5, 1.7, 1.6, 1.8],
-    preferredTimeWindow: '03:00–04:30',
-    priority: 'High',
-    priorityScore: 80,
-    factors: { safetyImpact: 22, assetCriticality: 22, urgency: 16, failureProbability: 11, operationalImpact: 9 },
-    deadline: '06 Sep 2026',
-    constraints: 'Station Master manual control standby required.',
-    resources: 'Signal Tester Kit, 1 DSTE/MAQ',
-    status: 'Planned',
-    submissionDate: '2026-09-04 18:00'
-  },
-  {
-    id: 'REQ-MAQ-204',
-    dept: 'Operating',
-    sectionId: 'MAJN-PNMB',
-    sectionName: 'MAJN–PNMB (Mangaluru Jn–Panambur Port)',
-    workType: 'Port Siding Point Calibration',
-    description: 'Calibration of electric point machines and cross-over track circuits for New Mangalore Port coal terminal.',
-    requestedDuration: 3.0,
-    predictedDuration: 3.3,
-    historicalSamples: [2.9, 3.1, 3.4, 3.2, 3.5],
-    preferredTimeWindow: '02:00–05:00',
-    priority: 'Medium',
-    priorityScore: 70,
-    factors: { safetyImpact: 19, assetCriticality: 18, urgency: 15, failureProbability: 10, operationalImpact: 8 },
-    deadline: '07 Sep 2026',
-    constraints: 'Coordinate with New Mangalore Port Authority.',
-    resources: '1 Traffic Inspector, 1 SSE/Points',
-    status: 'Pending',
-    submissionDate: '2026-09-04 11:30'
-  }
-];
+export const MAQ_REQUESTS: MaintenanceRequest[] = [];
 
 export const MAQ_TRAINS: TrainMovement[] = [
   {
@@ -829,7 +501,7 @@ export const MAQ_BLOCKS: MaintenanceBlock[] = [
     sectionId: 'SL-UD',
     sectionName: 'SL–UD (Surathkal–Udupi)',
     departments: ['Engineering', 'TRD'],
-    requestIds: ['REQ-MAQ-201', 'REQ-MAQ-202'],
+    requestIds: [],
     workSummary: 'Track packing & joint sleeper replacement near Nandikoor',
     scheduledStart: '02:00',
     scheduledEnd: '04:30',
@@ -849,7 +521,7 @@ export const MAQ_BLOCKS: MaintenanceBlock[] = [
     sectionId: 'MAJN-PNMB',
     sectionName: 'MAJN–PNMB (Mangaluru Jn–Panambur)',
     departments: ['Operating'],
-    requestIds: ['REQ-MAQ-204'],
+    requestIds: [],
     workSummary: 'Port siding point calibration and circuit overhaul',
     scheduledStart: '05:00',
     scheduledEnd: '06:30',
@@ -864,63 +536,7 @@ export const MAQ_BLOCKS: MaintenanceBlock[] = [
   }
 ];
 
-export const MAQ_CONFLICTS: OperationalConflict[] = [
-  {
-    id: 'CONF-MAQ-801',
-    severity: 'High',
-    sectionId: 'SL-UD',
-    sectionName: 'SL–UD (Surathkal–Udupi)',
-    blockTime: '02:00–04:30',
-    conflictPointTime: '04:10',
-    conflictingTrain: MAQ_TRAINS[0], // 12134 CSMT Express
-    description: 'Maintenance block overlaps approaching 12134 Mangaluru-CSMT Superfast near Surathkal.',
-    impactScore: 82,
-    status: 'Unresolved',
-    alternatives: [
-      {
-        optionId: 'ALT-MAQ-1',
-        label: 'Option A: Advance Block Window to 01:00–03:30',
-        window: '01:00–03:30',
-        trainImpact: 'Zero Passenger Delay',
-        trainDelayMin: 0,
-        isRecommended: true,
-        reason: 'Leaves clear section ahead of 12134 passage.'
-      },
-      {
-        optionId: 'ALT-MAQ-2',
-        label: 'Option B: Regulate 12134 at Mangaluru Jn',
-        window: '02:00–04:30',
-        trainImpact: '25 min departure delay',
-        trainDelayMin: 25,
-        isRecommended: false,
-        reason: 'Significant punctuality penalty on Konkan corridor.'
-      }
-    ]
-  },
-  {
-    id: 'CONF-MAQ-802',
-    severity: 'Medium',
-    sectionId: 'MAJN-PNMB',
-    sectionName: 'MAJN–PNMB (Mangaluru Jn–Panambur)',
-    blockTime: '02:00–05:00',
-    conflictPointTime: '02:30',
-    conflictingTrain: MAQ_TRAINS[3], // NMPT-882 Freight
-    description: 'Siding maintenance delays outbound coal train from New Mangalore Port.',
-    impactScore: 45,
-    status: 'Unresolved',
-    alternatives: [
-      {
-        optionId: 'ALT-MAQ-3',
-        label: 'Option A: Stagger block after port rake exit (03:30–06:00)',
-        window: '03:30–06:00',
-        trainImpact: '0 min delay',
-        trainDelayMin: 0,
-        isRecommended: true,
-        reason: 'Port dispatch completed before track isolation.'
-      }
-    ]
-  }
-];
+export const MAQ_CONFLICTS: OperationalConflict[] = [];
 
 export const MAQ_OPTIMIZATION_PLAN: OptimizationPlan = {
   id: 'OPT-MAQ-402',
@@ -994,88 +610,7 @@ export const MAQ_OVERRUN_SCENARIO: OverrunScenario = {
 // THIRUVANANTHAPURAM DIVISION (TVC) DATASET
 // ==========================================
 
-export const TVC_REQUESTS: MaintenanceRequest[] = [
-  {
-    id: 'REQ-TVC-301',
-    dept: 'Engineering',
-    sectionId: 'KYJ-QLN',
-    sectionName: 'KYJ–QLN (Kayamkulam–Kollam)',
-    workType: 'Track Geometry Tamping & Ballast Regulation',
-    description: '09-3X tamper packing on UP line between Ochira and Sasthankotta near km 128.',
-    requestedDuration: 3.0,
-    predictedDuration: 3.3,
-    historicalSamples: [2.9, 3.2, 3.4, 3.3, 3.6],
-    preferredTimeWindow: '02:00–05:00',
-    priority: 'Critical',
-    priorityScore: 92,
-    factors: { safetyImpact: 28, assetCriticality: 23, urgency: 19, failureProbability: 12, operationalImpact: 10 },
-    deadline: 'Tonight (Shift 3)',
-    constraints: 'Requires complete track possession; heavy commuter corridor.',
-    resources: 'Duomatic tamper, 1 PWI/Kollam, 16 Gangmen',
-    status: 'Pending',
-    submissionDate: '2026-09-04 16:40'
-  },
-  {
-    id: 'REQ-TVC-302',
-    dept: 'TRD',
-    sectionId: 'QLN-TVC',
-    sectionName: 'QLN–TVC (Kollam–Thiruvananthapuram)',
-    workType: 'OHE Cantilever Replacement & Dropper Alignment',
-    description: 'Replacement of corroded cantilever brackets and contact wire height check near Varkala Sivagiri.',
-    requestedDuration: 2.0,
-    predictedDuration: 2.3,
-    historicalSamples: [2.0, 2.2, 2.4, 2.3, 2.5],
-    preferredTimeWindow: '01:30–03:30',
-    priority: 'High',
-    priorityScore: 81,
-    factors: { safetyImpact: 23, assetCriticality: 21, urgency: 16, failureProbability: 11, operationalImpact: 10 },
-    deadline: '06 Sep 2026',
-    constraints: 'Requires 25kV traction power shutdown from Varkala feeding post.',
-    resources: 'Tower wagon unit TVC-2, 1 SSE/TRD, 6 Linemen',
-    status: 'Pending',
-    submissionDate: '2026-09-04 17:15'
-  },
-  {
-    id: 'REQ-TVC-303',
-    dept: 'S&T',
-    sectionId: 'ERS-ALLP',
-    sectionName: 'ERS–ALLP (Ernakulam–Alappuzha)',
-    workType: 'Signalling Cable Insulation & Relay Testing',
-    description: 'Megger testing of underground copper signalling cables between Kumbalam and Cherthala.',
-    requestedDuration: 2.0,
-    predictedDuration: 2.2,
-    historicalSamples: [1.9, 2.1, 2.3, 2.2, 2.4],
-    preferredTimeWindow: '02:30–04:30',
-    priority: 'Medium',
-    priorityScore: 68,
-    factors: { safetyImpact: 18, assetCriticality: 18, urgency: 14, failureProbability: 9, operationalImpact: 9 },
-    deadline: '07 Sep 2026',
-    constraints: 'Requires coordinated station clearance with Cherthala Station Master.',
-    resources: 'Insulation Tester, 1 SSE/Sig Cherthala',
-    status: 'Planned',
-    submissionDate: '2026-09-04 18:30'
-  },
-  {
-    id: 'REQ-TVC-304',
-    dept: 'Engineering',
-    sectionId: 'KTYM-KYJ',
-    sectionName: 'KTYM–KYJ (Kottayam–Kayamkulam)',
-    workType: 'Turnout Curve De-Stressing',
-    description: 'Thermal de-stressing of turnout curves and switch expansion joints at Chengannur Jn.',
-    requestedDuration: 2.5,
-    predictedDuration: 2.7,
-    historicalSamples: [2.4, 2.6, 2.8, 2.7, 2.9],
-    preferredTimeWindow: '03:00–05:30',
-    priority: 'High',
-    priorityScore: 83,
-    factors: { safetyImpact: 24, assetCriticality: 22, urgency: 17, failureProbability: 11, operationalImpact: 9 },
-    deadline: '06 Sep 2026',
-    constraints: 'Requires rail tensor and joint gap shims.',
-    resources: 'Rail tensor set, 1 PWI/Chengannur, 12 Track Maintainers',
-    status: 'Pending',
-    submissionDate: '2026-09-04 19:10'
-  }
-];
+export const TVC_REQUESTS: MaintenanceRequest[] = [];
 
 export const TVC_TRAINS: TrainMovement[] = [
   {
@@ -1126,7 +661,7 @@ export const TVC_BLOCKS: MaintenanceBlock[] = [
     sectionId: 'KYJ-QLN',
     sectionName: 'KYJ–QLN (Kayamkulam–Kollam)',
     departments: ['Engineering', 'TRD'],
-    requestIds: ['REQ-TVC-301'],
+    requestIds: [],
     workSummary: 'Track geometry tamping on UP line (Ochira–Sasthankotta)',
     scheduledStart: '02:00',
     scheduledEnd: '04:30',
@@ -1146,7 +681,7 @@ export const TVC_BLOCKS: MaintenanceBlock[] = [
     sectionId: 'QLN-TVC',
     sectionName: 'QLN–TVC (Kollam–Thiruvananthapuram)',
     departments: ['TRD'],
-    requestIds: ['REQ-TVC-302'],
+    requestIds: [],
     workSummary: 'OHE cantilever replacement near Varkala Sivagiri',
     scheduledStart: '01:30',
     scheduledEnd: '03:30',
@@ -1161,63 +696,7 @@ export const TVC_BLOCKS: MaintenanceBlock[] = [
   }
 ];
 
-export const TVC_CONFLICTS: OperationalConflict[] = [
-  {
-    id: 'CONF-TVC-801',
-    severity: 'Critical',
-    sectionId: 'KYJ-QLN',
-    sectionName: 'KYJ–QLN (Kayamkulam–Kollam)',
-    blockTime: '02:00–04:30',
-    conflictPointTime: '03:40',
-    conflictingTrain: TVC_TRAINS[1], // 16346 Netravati Express
-    description: 'Requested tamping window directly interferes with scheduled run of 16346 Netravati Express.',
-    impactScore: 88,
-    status: 'Unresolved',
-    alternatives: [
-      {
-        optionId: 'ALT-TVC-1',
-        label: 'Option A: Advance Window to 01:00–03:30',
-        window: '01:00–03:30',
-        trainImpact: 'Zero Passenger Delay',
-        trainDelayMin: 0,
-        isRecommended: true,
-        reason: 'Track cleared 10 min before Netravati enters section.'
-      },
-      {
-        optionId: 'ALT-TVC-2',
-        label: 'Option B: Divert Netravati via Alappuzha (ERS–ALLP–KYJ)',
-        window: '02:00–04:30',
-        trainImpact: '18 min run-time increase',
-        trainDelayMin: 18,
-        isRecommended: false,
-        reason: 'Requires routing coordination across Alappuzha chord.'
-      }
-    ]
-  },
-  {
-    id: 'CONF-TVC-802',
-    severity: 'High',
-    sectionId: 'QLN-TVC',
-    sectionName: 'QLN–TVC (Kollam–Thiruvananthapuram)',
-    blockTime: '01:30–03:30',
-    conflictPointTime: '01:50',
-    conflictingTrain: TVC_TRAINS[2], // 12624 Chennai Mail
-    description: 'TRD OHE isolation at Varkala delays 12624 Chennai Mail.',
-    impactScore: 75,
-    status: 'Unresolved',
-    alternatives: [
-      {
-        optionId: 'ALT-TVC-3',
-        label: 'Option A: Delay OHE isolation to 02:15–04:15',
-        window: '02:15–04:15',
-        trainImpact: '0 min delay to 12624',
-        trainDelayMin: 0,
-        isRecommended: true,
-        reason: 'Chennai Mail clears Varkala prior to power shutdown.'
-      }
-    ]
-  }
-];
+export const TVC_CONFLICTS: OperationalConflict[] = [];
 
 export const TVC_OPTIMIZATION_PLAN: OptimizationPlan = {
   id: 'OPT-TVC-501',

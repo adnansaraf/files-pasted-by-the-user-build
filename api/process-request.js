@@ -105,13 +105,20 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: error.message });
       }
       // Automatically purge sample dummy test entries from Supabase and response
-      const samplePrefixes = ['4608e2ef', '8a8cbb8e', '0424c9a0', '22bd94f8', 'b218c599'];
+      const samplePrefixes = ['4608e2ef', '8a8cbb8e', '0424c9a0', '22bd94f8', 'b218c599', '005c4695'];
       const isSample = (r) => {
-        const idStr = String(r.id || '');
+        const idStr = String(r.id || '').toLowerCase();
         const meta = r.ai_result?.requestMeta || {};
-        const workType = String(meta.workType || '');
-        const desc = String(meta.description || '');
-        return samplePrefixes.some(p => idStr.startsWith(p)) || workType.includes('kuthira') || desc.includes('kuthira');
+        const workType = String(meta.workType || '').toLowerCase();
+        const desc = String(meta.description || '').toLowerCase();
+        return samplePrefixes.some(p => idStr.includes(p.toLowerCase())) ||
+               idStr.includes('005c4695') ||
+               workType.includes('kuthira') || desc.includes('kuthira') ||
+               workType.includes('sample') || desc.includes('sample') ||
+               workType.includes('test') || desc.includes('test') ||
+               workType.includes('rail welding') || desc.includes('rail welding') ||
+               idStr.startsWith('req-1024') || idStr.startsWith('req-1025') || idStr.startsWith('req-1026') ||
+               idStr.startsWith('req-1027') || idStr.startsWith('req-1028');
       };
 
       const sampleRows = (data || []).filter(isSample);
@@ -152,8 +159,8 @@ export default async function handler(req, res) {
       }
 
       if (purgeSample) {
-        const samplePrefixes = ['4608e2ef', '8a8cbb8e', '0424c9a0', '22bd94f8', 'b218c599'];
-        const filterOr = samplePrefixes.map(p => `id.ilike.${p}%`).join(',');
+        const samplePrefixes = ['4608e2ef', '8a8cbb8e', '0424c9a0', '22bd94f8', 'b218c599', '005c4695'];
+        const filterOr = samplePrefixes.map(p => `id.ilike.%${p}%`).join(',');
         const { error } = await supabase
           .from('maintenance_requests')
           .delete()
