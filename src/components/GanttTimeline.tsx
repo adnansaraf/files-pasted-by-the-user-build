@@ -89,17 +89,19 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
               <div className="marker-line" />
             </div>
 
-            {/* Critical Conflict Area Marker (03:15 on A-B) */}
-            <div
-              className="conflict-highlight-zone"
-              style={{ left: `${timeToPercent('02:00')}%`, width: `${durationToWidth('02:00', '05:00')}%` }}
-              title="Coordinated Maintenance Window on Section A-B (02:00–05:00)"
-            >
-              <div className="conflict-point-pin">
-                <AlertTriangle size={11} />
-                <span>03:15 Train Clash (12617)</span>
+            {/* Critical Conflict Area Marker (if conflicts exist) */}
+            {conflicts.length > 0 && (
+              <div
+                className="conflict-highlight-zone"
+                style={{ left: `${timeToPercent('02:00')}%`, width: `${durationToWidth('02:00', '05:00')}%` }}
+                title="Operational Conflict Window"
+              >
+                <div className="conflict-point-pin">
+                  <AlertTriangle size={11} />
+                  <span>{conflicts[0].conflictPointTime} Conflict ({conflicts[0].conflictingTrain?.trainNo || 'Train'})</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -116,53 +118,42 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
               <small className="lane-sub">Track & Structural</small>
             </div>
             <div className="gantt-lane-track">
-              {/* Block BLK-204 (PGT-OTP) */}
-              <div
-                className="gantt-block block-engineering active"
-                style={{
-                  left: `${timeToPercent('02:00')}%`,
-                  width: `${durationToWidth('02:00', '04:45')}%`
-                }}
-                onClick={() => handleBlockSelect(blocks[0])}
-                onMouseEnter={() => setHoveredItem('BLK-204')}
-                onMouseLeave={() => setHoveredItem(null)}
-                title="BLK-204: Track Tamping (02:00–04:45, +45m Delay)"
-              >
-                <div className="block-content">
-                  <div className="block-badge-row">
-                    <span className="block-id">BLK-204</span>
-                    <span className="block-tag tag-delayed">+45m</span>
-                  </div>
-                  <div className="block-details">
-                    <span className="block-title">A–B: Track Tamping</span>
-                    <span className="block-time">02:00–04:45</span>
-                  </div>
+              {blocks.filter(b => b.departments.includes('Engineering')).length === 0 ? (
+                <div style={{ display: 'flex', alignItems: 'center', height: '100%', paddingLeft: '16px', color: 'var(--slate-400)', fontSize: '11px', fontStyle: 'italic' }}>
+                  No active or planned Engineering possessions
                 </div>
-                <div className="block-progress-fill" style={{ width: '78%' }} />
-              </div>
-
-              {/* Block BLK-206 (OTP-SRR) */}
-              <div
-                className="gantt-block block-engineering planned"
-                style={{
-                  left: `${timeToPercent('05:00')}%`,
-                  width: `${durationToWidth('05:00', '07:00')}%`
-                }}
-                onClick={() => handleBlockSelect(blocks[2])}
-                onMouseEnter={() => setHoveredItem('BLK-206')}
-                onMouseLeave={() => setHoveredItem(null)}
-                title="BLK-206: Rail Weld Renewal (05:00–07:00)"
-              >
-                <div className="block-content">
-                  <div className="block-badge-row">
-                    <span className="block-id">BLK-206</span>
-                  </div>
-                  <div className="block-details">
-                    <span className="block-title">B–C: Rail Weld Renewal</span>
-                    <span className="block-time">05:00–07:00</span>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                blocks
+                  .filter(b => b.departments.includes('Engineering'))
+                  .map(b => (
+                    <div
+                      key={b.id}
+                      className={`gantt-block block-engineering ${b.status.toLowerCase()}`}
+                      style={{
+                        left: `${timeToPercent(b.scheduledStart)}%`,
+                        width: `${durationToWidth(b.scheduledStart, b.expectedEnd || b.scheduledEnd)}%`
+                      }}
+                      onClick={() => handleBlockSelect(b)}
+                      onMouseEnter={() => setHoveredItem(b.id)}
+                      onMouseLeave={() => setHoveredItem(null)}
+                      title={`${b.id}: ${b.workSummary} (${b.scheduledStart}–${b.expectedEnd || b.scheduledEnd})`}
+                    >
+                      <div className="block-content">
+                        <div className="block-badge-row">
+                          <span className="block-id">{b.id}</span>
+                          {b.status === 'Delayed' && <span className="block-tag tag-delayed">+Delay</span>}
+                        </div>
+                        <div className="block-details">
+                          <span className="block-title">{b.sectionName}: {b.workSummary}</span>
+                          <span className="block-time">{b.scheduledStart}–{b.expectedEnd || b.scheduledEnd}</span>
+                        </div>
+                      </div>
+                      {b.progressPercent > 0 && (
+                        <div className="block-progress-fill" style={{ width: `${b.progressPercent}%` }} />
+                      )}
+                    </div>
+                  ))
+              )}
             </div>
           </div>
         )}
@@ -178,47 +169,36 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
               <small className="lane-sub">25kV AC Catenary</small>
             </div>
             <div className="gantt-lane-track">
-              {/* Coordinated OHE block on A-B */}
-              <div
-                className="gantt-block block-trd active"
-                style={{
-                  left: `${timeToPercent('02:00')}%`,
-                  width: `${durationToWidth('02:00', '04:00')}%`
-                }}
-                onClick={() => handleBlockSelect(blocks[0])}
-                title="REQ-1025: TRD OHE Tower Wagon Inspection (02:00–04:00, Joint)"
-              >
-                <div className="block-content">
-                  <div className="block-badge-row">
-                    <span className="block-id">REQ-1025</span>
-                    <span className="block-tag tag-joint">Joint</span>
-                  </div>
-                  <div className="block-details">
-                    <span className="block-title">A–B: Tower Wagon Inspection</span>
-                    <span className="block-time">02:00–04:00</span>
-                  </div>
+              {blocks.filter(b => b.departments.includes('TRD')).length === 0 ? (
+                <div style={{ display: 'flex', alignItems: 'center', height: '100%', paddingLeft: '16px', color: 'var(--slate-400)', fontSize: '11px', fontStyle: 'italic' }}>
+                  No active or planned TRD possessions
                 </div>
-              </div>
-
-              {/* Substation maintenance on A-G */}
-              <div
-                className="gantt-block block-trd planned"
-                style={{
-                  left: `${timeToPercent('10:00')}%`,
-                  width: `${durationToWidth('10:00', '13:30')}%`
-                }}
-                title="REQ-1031: Muthalamada TSS Power Transformer Overhaul (10:00–13:30)"
-              >
-                <div className="block-content">
-                  <div className="block-badge-row">
-                    <span className="block-id">REQ-1031</span>
-                  </div>
-                  <div className="block-details">
-                    <span className="block-title">A–G: TSS Transformer Overhaul</span>
-                    <span className="block-time">10:00–13:30</span>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                blocks
+                  .filter(b => b.departments.includes('TRD'))
+                  .map(b => (
+                    <div
+                      key={b.id}
+                      className={`gantt-block block-trd ${b.status.toLowerCase()}`}
+                      style={{
+                        left: `${timeToPercent(b.scheduledStart)}%`,
+                        width: `${durationToWidth(b.scheduledStart, b.expectedEnd || b.scheduledEnd)}%`
+                      }}
+                      onClick={() => handleBlockSelect(b)}
+                      title={`${b.id}: ${b.workSummary} (${b.scheduledStart}–${b.expectedEnd || b.scheduledEnd})`}
+                    >
+                      <div className="block-content">
+                        <div className="block-badge-row">
+                          <span className="block-id">{b.id}</span>
+                        </div>
+                        <div className="block-details">
+                          <span className="block-title">{b.sectionName}: {b.workSummary}</span>
+                          <span className="block-time">{b.scheduledStart}–{b.expectedEnd || b.scheduledEnd}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+              )}
             </div>
           </div>
         )}
@@ -234,48 +214,39 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
               <small className="lane-sub">Interlocking & Relays</small>
             </div>
             <div className="gantt-lane-track">
-              {/* S&T Block on C-D */}
-              <div
-                className="gantt-block block-st active"
-                style={{
-                  left: `${timeToPercent('01:30')}%`,
-                  width: `${durationToWidth('01:30', '03:30')}%`
-                }}
-                onClick={() => handleBlockSelect(blocks[1])}
-                title="BLK-205: Axle Counter Replacement (01:30–03:30)"
-              >
-                <div className="block-content">
-                  <div className="block-badge-row">
-                    <span className="block-id">BLK-205</span>
-                  </div>
-                  <div className="block-details">
-                    <span className="block-title">C–D: Axle Counter Replacement</span>
-                    <span className="block-time">01:30–03:30</span>
-                  </div>
+              {blocks.filter(b => b.departments.includes('S&T')).length === 0 ? (
+                <div style={{ display: 'flex', alignItems: 'center', height: '100%', paddingLeft: '16px', color: 'var(--slate-400)', fontSize: '11px', fontStyle: 'italic' }}>
+                  No active or planned S&T possessions
                 </div>
-                <div className="block-progress-fill" style={{ width: '92%' }} />
-              </div>
-
-              {/* Coordinated Relay Check on A-B */}
-              <div
-                className="gantt-block block-st planned"
-                style={{
-                  left: `${timeToPercent('03:00')}%`,
-                  width: `${durationToWidth('03:00', '04:00')}%`
-                }}
-                title="REQ-1026: Signal Relay & Point 102B Inspection (03:00–04:00, Joint)"
-              >
-                <div className="block-content">
-                  <div className="block-badge-row">
-                    <span className="block-id">REQ-1026</span>
-                    <span className="block-tag tag-joint">Joint</span>
-                  </div>
-                  <div className="block-details">
-                    <span className="block-title">A–B: Point 102B & Relay Check</span>
-                    <span className="block-time">03:00–04:00</span>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                blocks
+                  .filter(b => b.departments.includes('S&T'))
+                  .map(b => (
+                    <div
+                      key={b.id}
+                      className={`gantt-block block-st ${b.status.toLowerCase()}`}
+                      style={{
+                        left: `${timeToPercent(b.scheduledStart)}%`,
+                        width: `${durationToWidth(b.scheduledStart, b.expectedEnd || b.scheduledEnd)}%`
+                      }}
+                      onClick={() => handleBlockSelect(b)}
+                      title={`${b.id}: ${b.workSummary} (${b.scheduledStart}–${b.expectedEnd || b.scheduledEnd})`}
+                    >
+                      <div className="block-content">
+                        <div className="block-badge-row">
+                          <span className="block-id">{b.id}</span>
+                        </div>
+                        <div className="block-details">
+                          <span className="block-title">{b.sectionName}: {b.workSummary}</span>
+                          <span className="block-time">{b.scheduledStart}–{b.expectedEnd || b.scheduledEnd}</span>
+                        </div>
+                      </div>
+                      {b.progressPercent > 0 && (
+                        <div className="block-progress-fill" style={{ width: `${b.progressPercent}%` }} />
+                      )}
+                    </div>
+                  ))
+              )}
             </div>
           </div>
         )}

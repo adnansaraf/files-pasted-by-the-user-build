@@ -108,7 +108,9 @@ export const OverviewPage: React.FC = () => {
           <div className="kpi-content">
             <span className="kpi-label">Planned Blocks</span>
             <div className="kpi-value">{plannedBlocksCount}</div>
-            <span className="kpi-delta text-info">Next window: 02:00 IST</span>
+            <span className="kpi-delta text-info">
+              {plannedBlocksCount > 0 ? `${plannedBlocksCount} block(s) scheduled` : 'No upcoming windows'}
+            </span>
           </div>
           <div className="kpi-icon-box bg-blue-subtle">
             <CalendarCheck size={22} className="text-blue" />
@@ -119,7 +121,9 @@ export const OverviewPage: React.FC = () => {
           <div className="kpi-content">
             <span className="kpi-label">Active Blocks</span>
             <div className="kpi-value">{activeBlocksCount}</div>
-            <span className="kpi-delta text-danger">{activeWorkZonesCount} Active Work Zones</span>
+            <span className={`kpi-delta ${activeBlocksCount > 0 ? 'text-danger' : 'text-muted'}`}>
+              {activeBlocksCount > 0 ? `${activeBlocksCount} Active Work Zones` : '0 Active Possessions'}
+            </span>
           </div>
           <div className="kpi-icon-box bg-green-subtle">
             <Activity size={22} className="text-success" />
@@ -130,7 +134,9 @@ export const OverviewPage: React.FC = () => {
           <div className="kpi-content">
             <span className="kpi-label">Operational Conflicts</span>
             <div className="kpi-value">{conflicts.length}</div>
-            <span className="kpi-delta text-danger">{criticalConflictsCount} Critical Overlap</span>
+            <span className={`kpi-delta ${criticalConflictsCount > 0 ? 'text-danger' : 'text-success'}`}>
+              {criticalConflictsCount > 0 ? `${criticalConflictsCount} Critical Overlap` : '0 Critical Overlaps'}
+            </span>
           </div>
           <div className="kpi-icon-box bg-danger-subtle">
             <TriangleAlert size={22} className="text-danger" />
@@ -141,7 +147,9 @@ export const OverviewPage: React.FC = () => {
           <div className="kpi-content">
             <span className="kpi-label">High Priority Jobs</span>
             <div className="kpi-value">{highPriorityJobsCount}</div>
-            <span className="kpi-delta text-warning">Requires priority slot</span>
+            <span className={`kpi-delta ${highPriorityJobsCount > 0 ? 'text-warning' : 'text-muted'}`}>
+              {highPriorityJobsCount > 0 ? 'Requires priority slot' : 'No urgent queue'}
+            </span>
           </div>
           <div className="kpi-icon-box bg-amber-subtle">
             <ShieldAlert size={22} className="text-amber" />
@@ -217,58 +225,65 @@ export const OverviewPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="hero-recommend-box">
-            <div className="recommend-head">
-              <div className="recommend-badge-wrap">
-                <span className="badge-recommended">SolveX High-Synergy Plan</span>
-                <span className="section-pill">Section A–B (PGT–OTP)</span>
+          {requests.length > 0 ? (
+            <div className="hero-recommend-box">
+              <div className="recommend-head">
+                <div className="recommend-badge-wrap">
+                  <span className="badge-recommended">SolveX High-Synergy Plan</span>
+                  <span className="section-pill">Section {requests[0].sectionId}</span>
+                </div>
+                <div className="recommend-score">
+                  <span className="score-num">87</span>
+                  <span className="score-denom">/ 100</span>
+                </div>
               </div>
-              <div className="recommend-score">
-                <span className="score-num">87</span>
-                <span className="score-denom">/ 100</span>
+
+              <h3 className="recommend-title">
+                Coordinate {requests.length} Request(s) into Single Window
+              </h3>
+              <p className="recommend-sub">
+                {requests.map(r => `${r.dept} (${r.workType})`).join(' + ')}
+              </p>
+
+              <div className="recommend-reasons-list">
+                <div className="reason-item">
+                  <CheckCircle2 size={15} className="text-success" />
+                  <span>
+                    <strong>Synergy Optimization:</strong> Bundles pending maintenance requests to minimize separate track downtime.
+                  </span>
+                </div>
+              </div>
+
+              <div className="recommend-footer">
+                <span className="text-xs text-muted">
+                  Status: Ready for Planner Review
+                </span>
+                <button
+                  className="btn-primary-sm"
+                  onClick={() => navigateTo('AI Optimizer')}
+                >
+                  Optimize Now
+                </button>
               </div>
             </div>
-
-            <h3 className="recommend-title">
-              Coordinate 3 Jobs in 02:00–05:00 Single Block Window
-            </h3>
-            <p className="recommend-sub">
-              Engineering Track Tamping + TRD OHE Dropper Check + S&T Axle Counter Testing
-            </p>
-
-            <div className="recommend-reasons-list">
-              <div className="reason-item">
-                <CheckCircle2 size={15} className="text-success" />
-                <span>
-                  <strong>Same Section Synergy:</strong> Consolidates 3 requests on PGT–OTP (km 531–534).
-                </span>
-              </div>
-              <div className="reason-item">
-                <CheckCircle2 size={15} className="text-success" />
-                <span>
-                  <strong>Reduces Separate Possessions:</strong> Cuts individual track downtime from 6.0h to 3.0h.
-                </span>
-              </div>
-              <div className="reason-item">
-                <CheckCircle2 size={15} className="text-success" />
-                <span>
-                  <strong>Lowest Estimated Train Impact:</strong> 14 min delay vs 42 min in daytime alternative.
-                </span>
-              </div>
-            </div>
-
-            <div className="recommend-footer">
-              <span className="text-xs text-muted">
-                Status: {optimizationPlan.approvalStatus} · Requires Planner Signature
-              </span>
+          ) : (
+            <div className="hero-recommend-box" style={{ textAlign: 'center', padding: '36px 20px' }}>
+              <Sparkles size={28} style={{ color: 'var(--maroon-700)', margin: '0 auto 10px' }} />
+              <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--slate-800)', margin: '0 0 6px' }}>
+                AI Optimizer Ready
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--slate-500)', margin: '0 0 16px', maxWidth: '380px', marginLeft: 'auto', marginRight: 'auto' }}>
+                Submit maintenance requests to let the SolveX AI engine identify joint corridor possession windows and resolve clashes.
+              </p>
               <button
                 className="btn-primary-sm"
-                onClick={() => navigateTo('Plan Review')}
+                style={{ margin: '0 auto' }}
+                onClick={() => navigateTo('Maintenance Requests')}
               >
-                Review & Approve Plan
+                + Submit Maintenance Request
               </button>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Critical Operational Alerts */}
@@ -278,65 +293,55 @@ export const OverviewPage: React.FC = () => {
               <TriangleAlert size={18} className="text-danger" />
               <h2 className="panel-title">Critical Operational Alerts</h2>
             </div>
-            <button
-              className="btn-link"
-              onClick={() => navigateTo('Conflicts')}
-            >
-              <span>View All 4 Alerts</span>
-              <ChevronRight size={14} />
-            </button>
+            {conflicts.length > 0 && (
+              <button
+                className="btn-link"
+                onClick={() => navigateTo('Conflicts')}
+              >
+                <span>View All ({conflicts.length})</span>
+                <ChevronRight size={14} />
+              </button>
+            )}
           </div>
 
           <div className="alerts-list">
-            <div
-              className="alert-item alert-critical"
-              onClick={() => {
-                setSelectedSectionId('A-B');
-                navigateTo('Conflicts');
-              }}
-            >
-              <div className="alert-icon-col">
-                <TriangleAlert size={20} className="text-danger" />
+            {conflicts.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--slate-500)' }}>
+                <CheckCircle2 size={28} style={{ color: '#16a34a', margin: '0 auto 8px' }} />
+                <strong style={{ display: 'block', color: 'var(--slate-700)', fontSize: '14px', marginBottom: '4px' }}>
+                  Corridors Clear — No Active Alerts
+                </strong>
+                <span style={{ fontSize: '12.5px' }}>Zero train clashing or block overruns reported across Palakkad Division.</span>
               </div>
-              <div className="alert-content-col">
-                <div className="alert-title-row">
-                  <strong>Train Movement Overlaps Block Request</strong>
-                  <span className="badge-critical">CRITICAL</span>
+            ) : (
+              conflicts.map(c => (
+                <div
+                  key={c.id}
+                  className="alert-item alert-critical"
+                  onClick={() => {
+                    setSelectedSectionId(c.sectionId);
+                    navigateTo('Conflicts');
+                  }}
+                >
+                  <div className="alert-icon-col">
+                    <TriangleAlert size={20} className="text-danger" />
+                  </div>
+                  <div className="alert-content-col">
+                    <div className="alert-title-row">
+                      <strong>{c.description}</strong>
+                      <span className="badge-critical">{c.severity}</span>
+                    </div>
+                    <p>
+                      Section {c.sectionName}: {c.conflictingTrain?.trainName} ({c.conflictingTrain?.trainNo}) at {c.conflictPointTime}.
+                    </p>
+                    <div className="alert-action-line">
+                      <span>View alternative non-clashing windows</span>
+                      <ChevronRight size={14} />
+                    </div>
+                  </div>
                 </div>
-                <p>
-                  Section A–B (PGT–OTP): 12617 Mangala Superfast arrives at 03:15 inside requested 02:00–05:00 window.
-                </p>
-                <div className="alert-action-line">
-                  <span>Recommendation: Advance block window to 01:00–04:00 (Option A)</span>
-                  <ChevronRight size={14} />
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="alert-item alert-warning"
-              onClick={() => {
-                setSelectedSectionId('A-B');
-                navigateTo('Dynamic Rescheduling');
-              }}
-            >
-              <div className="alert-icon-col">
-                <Clock size={20} className="text-warning" />
-              </div>
-              <div className="alert-content-col">
-                <div className="alert-title-row">
-                  <strong>Active Block BLK-204 Overrun Alert (+45 min)</strong>
-                  <span className="badge-warning">DELAY</span>
-                </div>
-                <p>
-                  Tamping machine subgrade issue at km 532. Planned completion 04:00 → Expected 04:45.
-                </p>
-                <div className="alert-action-line">
-                  <span>SolveX Re-scheduling: Move S&T to shadow window (8 min impact)</span>
-                  <ChevronRight size={14} />
-                </div>
-              </div>
-            </div>
+              ))
+            )}
           </div>
         </div>
       </div>

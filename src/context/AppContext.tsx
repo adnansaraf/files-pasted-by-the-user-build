@@ -193,8 +193,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const [sections, setSections] = useState<RailwaySection[]>(SECTIONS);
   const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
-  const [blocks, setBlocks] = useState<MaintenanceBlock[]>(INITIAL_BLOCKS);
-  const [conflicts, setConflicts] = useState<OperationalConflict[]>(INITIAL_CONFLICTS);
+  const [blocks, setBlocks] = useState<MaintenanceBlock[]>([]);
+  const [conflicts, setConflicts] = useState<OperationalConflict[]>([]);
   const [optimizationPlan, setOptimizationPlan] = useState<OptimizationPlan>(INITIAL_OPTIMIZATION_PLAN);
   const [overrunScenario, setOverrunScenario] = useState<OverrunScenario>(OVERRUN_SCENARIO_DATA);
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -204,36 +204,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isNewRequestModalOpen, setIsNewRequestModalOpen] = useState(false);
   const [isTestRunModalOpen, setIsTestRunModalOpen] = useState(false);
 
-  const [notifications, setNotifications] = useState<AppNotification[]>([
-    {
-      id: 'N-1',
-      title: 'Active Block Overrun Alert',
-      desc: 'BLK-PGT-204 on PGT–SRR reported expected finish delayed to 04:45 (+45m)',
-      time: '12 min ago',
-      type: 'critical'
-    },
-    {
-      id: 'N-2',
-      title: 'Critical Conflict Detected',
-      desc: '12617 Mangala Exp overlaps requested maintenance on PGT–SRR at 03:15',
-      time: '24 min ago',
-      type: 'critical'
-    },
-    {
-      id: 'N-3',
-      title: 'AI Multi-Department Coordination Ready',
-      desc: 'SolveX identified joint block opportunity for Engg + TRD + S&T on PGT–SRR',
-      time: '35 min ago',
-      type: 'info'
-    },
-    {
-      id: 'N-4',
-      title: 'Near Completion',
-      desc: 'BLK-PGT-205 on SRR–CLT reached 92% completion. Track handover imminent.',
-      time: '45 min ago',
-      type: 'success'
-    }
-  ]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   const [settings, setSettings] = useState<EngineSettings>({
     weightSafety: 35,
@@ -709,20 +680,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const resetAllDemoData = () => {
     setSections(SECTIONS);
     setRequests([]);
-    setBlocks(INITIAL_BLOCKS);
-    setConflicts(INITIAL_CONFLICTS);
+    setBlocks([]);
+    setConflicts([]);
     setOptimizationPlan(INITIAL_OPTIMIZATION_PLAN);
     setOverrunScenario(OVERRUN_SCENARIO_DATA);
     setSelectedSectionId('A-B');
-    setNotifications([
-      {
-        id: `N-${Date.now()}`,
-        title: 'Demo State Reset',
-        desc: 'All operational blocks, requests, and conflicts reloaded to standard Palakkad Division state.',
-        time: 'Just now',
-        type: 'info'
-      }
-    ]);
+    setNotifications([]);
   };
 
   return (

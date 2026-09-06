@@ -26,7 +26,9 @@ export const ActiveBlocksPage: React.FC = () => {
     setSelectedSectionId
   } = useApp();
 
-  const [selectedBlock, setSelectedBlock] = useState<MaintenanceBlock>(blocks[0]);
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(blocks[0]?.id || null);
+
+  const selectedBlock = blocks.find(b => b.id === selectedBlockId) || blocks[0] || null;
 
   const activeCount = blocks.filter(b => b.status === 'Active' || b.status === 'Delayed').length;
   const delayedCount = blocks.filter(b => b.status === 'Delayed').length;
@@ -105,167 +107,183 @@ export const ActiveBlocksPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {blocks.map(b => {
-              const isOverrun = b.status === 'Delayed' || b.expectedEnd > b.scheduledEnd;
-              return (
-                <tr
-                  key={b.id}
-                  className={selectedBlock.id === b.id ? 'row-selected' : ''}
-                  onClick={() => setSelectedBlock(b)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <td>
-                    <strong className="text-maroon text-monospace">{b.id}</strong>
-                  </td>
-                  <td>
-                    <button
-                      className="section-clickable-btn"
-                      onClick={e => {
-                        e.stopPropagation();
-                        setSelectedSectionId(b.sectionId);
-                        navigateTo('Railway Network');
-                      }}
-                    >
-                      {b.sectionName}
-                    </button>
-                  </td>
-                  <td>
-                    <div className="dept-tags-row">
-                      {b.departments.map(d => (
-                        <span key={d} className={`dept-pill dept-${d.toLowerCase()}`}>
-                          {d}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td>
-                    <strong>{b.scheduledStart}</strong>
-                  </td>
-                  <td>
-                    <strong className={isOverrun ? 'text-danger font-bold' : ''}>
-                      {b.expectedEnd} {isOverrun ? '(+45m)' : ''}
-                    </strong>
-                  </td>
-                  <td>
-                    <div className="table-progress-box">
-                      <div className="progress-bar-sm">
-                        <div
-                          className={`progress-fill ${isOverrun ? 'bg-danger' : 'bg-success'}`}
-                          style={{ width: `${b.progressPercent}%` }}
-                        />
-                      </div>
-                      <span className="progress-text">{b.progressPercent}%</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`status-pill status-${b.status.toLowerCase()}`}>
-                      {b.status}
-                    </span>
-                  </td>
-                  <td className="text-right" onClick={e => e.stopPropagation()}>
-                    <div className="btn-group-right">
-                      {b.id === 'BLK-204' && (
-                        <button
-                          className="btn-danger-xs"
-                          onClick={() => {
-                            reportDelay(b.id, 45, 'Track tamping needs additional passes due to wet formation');
-                          }}
-                        >
-                          Report Delay
-                        </button>
-                      )}
+            {blocks.length === 0 ? (
+              <tr>
+                <td colSpan={8} style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--slate-500)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <Activity size={32} style={{ color: 'var(--slate-400)' }} />
+                    <strong style={{ fontSize: '14px', color: 'var(--slate-700)' }}>No Active Track Possessions</strong>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--slate-500)' }}>
+                      No active track maintenance or speed restrictions currently operating on Palakkad Division.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              blocks.map(b => {
+                const isOverrun = b.status === 'Delayed' || b.expectedEnd > b.scheduledEnd;
+                return (
+                  <tr
+                    key={b.id}
+                    className={selectedBlock?.id === b.id ? 'row-selected' : ''}
+                    onClick={() => setSelectedBlockId(b.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>
+                      <strong className="text-maroon text-monospace">{b.id}</strong>
+                    </td>
+                    <td>
                       <button
-                        className="btn-secondary-xs"
-                        onClick={() => setInspectingBlock(b)}
+                        className="section-clickable-btn"
+                        onClick={e => {
+                          e.stopPropagation();
+                          setSelectedSectionId(b.sectionId);
+                          navigateTo('Railway Network');
+                        }}
                       >
-                        Inspect
+                        {b.sectionName}
                       </button>
-                      {b.status !== 'Completed' && (
+                    </td>
+                    <td>
+                      <div className="dept-tags-row">
+                        {b.departments.map(d => (
+                          <span key={d} className={`dept-pill dept-${d.toLowerCase()}`}>
+                            {d}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td>
+                      <strong>{b.scheduledStart}</strong>
+                    </td>
+                    <td>
+                      <strong className={isOverrun ? 'text-danger font-bold' : ''}>
+                        {b.expectedEnd} {isOverrun ? '(+45m)' : ''}
+                      </strong>
+                    </td>
+                    <td>
+                      <div className="table-progress-box">
+                        <div className="progress-bar-sm">
+                          <div
+                            className={`progress-fill ${isOverrun ? 'bg-danger' : 'bg-success'}`}
+                            style={{ width: `${b.progressPercent}%` }}
+                          />
+                        </div>
+                        <span className="progress-text">{b.progressPercent}%</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`status-pill status-${b.status.toLowerCase()}`}>
+                        {b.status}
+                      </span>
+                    </td>
+                    <td className="text-right" onClick={e => e.stopPropagation()}>
+                      <div className="btn-group-right">
+                        {b.id === 'BLK-204' && (
+                          <button
+                            className="btn-danger-xs"
+                            onClick={() => {
+                              reportDelay(b.id, 45, 'Track tamping needs additional passes due to wet formation');
+                            }}
+                          >
+                            Report Delay
+                          </button>
+                        )}
                         <button
-                          className="btn-success-xs"
-                          onClick={() => markBlockComplete(b.id)}
+                          className="btn-secondary-xs"
+                          onClick={() => setInspectingBlock(b)}
                         >
-                          Clear
+                          Inspect
                         </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                        {b.status !== 'Completed' && (
+                          <button
+                            className="btn-success-xs"
+                            onClick={() => markBlockComplete(b.id)}
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Selected Block Detailed Telemetry Card */}
-      <div className="active-block-card">
-        <div className="block-card-header">
-          <div>
-            <div className="d-flex align-center gap-2">
-              <span className="badge-section">Section {selectedBlock.sectionId}</span>
-              <span className={`status-pill status-${selectedBlock.status.toLowerCase()}`}>
-                {selectedBlock.status}
-              </span>
-            </div>
-            <h2>
-              {selectedBlock.id}: {selectedBlock.workSummary}
-            </h2>
-            <p className="text-muted text-sm">
-              Corridor: {selectedBlock.sectionName} · Shift: 02:00–04:45 IST
-            </p>
-          </div>
-
-          <div className="block-progress-card">
-            <div className="progress-header">
-              <span>Execution Completion</span>
-              <strong>{selectedBlock.progressPercent}%</strong>
-            </div>
-            <div className="progress-bar-lg">
-              <div
-                className="progress-fill-lg"
-                style={{ width: `${selectedBlock.progressPercent}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="block-metrics-grid">
-          <div className="metric-chip">
-            <span className="chip-label">Scheduled Window</span>
-            <strong>{selectedBlock.scheduledStart} → {selectedBlock.scheduledEnd}</strong>
-          </div>
-          <div className="metric-chip">
-            <span className="chip-label">Actual Expected Finish</span>
-            <strong className="text-danger">{selectedBlock.expectedEnd} IST</strong>
-          </div>
-          <div className="metric-chip">
-            <span className="chip-label">Assigned Gang & Crew</span>
-            <strong>{selectedBlock.crewAssigned}</strong>
-          </div>
-          <div className="metric-chip">
-            <span className="chip-label">25kV Traction Power</span>
-            <strong className="text-amber">
-              {selectedBlock.overheadPowerCutRequired ? 'Isolated (Substation PGT)' : 'Normal'}
-            </strong>
-          </div>
-        </div>
-
-        {selectedBlock.notes && (
-          <div className="overrun-alert-banner">
-            <AlertTriangle size={18} className="text-danger flex-shrink-0" />
+      {selectedBlock && (
+        <div className="active-block-card">
+          <div className="block-card-header">
             <div>
-              <strong>Site Condition Note:</strong>
-              <span> {selectedBlock.notes}</span>
+              <div className="d-flex align-center gap-2">
+                <span className="badge-section">Section {selectedBlock.sectionId}</span>
+                <span className={`status-pill status-${selectedBlock.status.toLowerCase()}`}>
+                  {selectedBlock.status}
+                </span>
+              </div>
+              <h2>
+                {selectedBlock.id}: {selectedBlock.workSummary}
+              </h2>
+              <p className="text-muted text-sm">
+                Corridor: {selectedBlock.sectionName} · Shift: {selectedBlock.scheduledStart}–{selectedBlock.expectedEnd || selectedBlock.scheduledEnd} IST
+              </p>
             </div>
-            <button
-              className="btn-danger-sm"
-              onClick={() => navigateTo('Dynamic Rescheduling')}
-            >
-              Resolve Overrun Now
-            </button>
+
+            <div className="block-progress-card">
+              <div className="progress-header">
+                <span>Execution Completion</span>
+                <strong>{selectedBlock.progressPercent}%</strong>
+              </div>
+              <div className="progress-bar-lg">
+                <div
+                  className="progress-fill-lg"
+                  style={{ width: `${selectedBlock.progressPercent}%` }}
+                />
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+
+          <div className="block-metrics-grid">
+            <div className="metric-chip">
+              <span className="chip-label">Scheduled Window</span>
+              <strong>{selectedBlock.scheduledStart} → {selectedBlock.scheduledEnd}</strong>
+            </div>
+            <div className="metric-chip">
+              <span className="chip-label">Actual Expected Finish</span>
+              <strong className="text-danger">{selectedBlock.expectedEnd || selectedBlock.scheduledEnd} IST</strong>
+            </div>
+            <div className="metric-chip">
+              <span className="chip-label">Assigned Gang & Crew</span>
+              <strong>{selectedBlock.crewAssigned}</strong>
+            </div>
+            <div className="metric-chip">
+              <span className="chip-label">25kV Traction Power</span>
+              <strong className="text-amber">
+                {selectedBlock.overheadPowerCutRequired ? 'Isolated (Substation PGT)' : 'Normal'}
+              </strong>
+            </div>
+          </div>
+
+          {selectedBlock.notes && (
+            <div className="overrun-alert-banner">
+              <AlertTriangle size={18} className="text-danger flex-shrink-0" />
+              <div>
+                <strong>Site Condition Note:</strong>
+                <span> {selectedBlock.notes}</span>
+              </div>
+              <button
+                className="btn-danger-sm"
+                onClick={() => navigateTo('Dynamic Rescheduling')}
+              >
+                Resolve Overrun Now
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <BlockDetailModal />
     </div>

@@ -14,7 +14,10 @@ import {
 import { useApp } from '../context/AppContext';
 
 export const ReportsPage: React.FC = () => {
-  const { navigateTo } = useApp();
+  const { navigateTo, requests, blocks } = useApp();
+
+  const totalPlannedBlocks = blocks.length;
+  const totalRequests = requests.length;
 
   return (
     <div className="page-container">
@@ -30,6 +33,7 @@ export const ReportsPage: React.FC = () => {
 
         <button
           className="btn-secondary"
+          disabled={totalPlannedBlocks === 0 && totalRequests === 0}
           onClick={() => alert('Exporting Official Divisional Maintenance Report (PDF/Excel)...')}
         >
           <Download size={15} />
@@ -37,63 +41,66 @@ export const ReportsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Hero Benchmark: Before vs After Optimization */}
-      <div className="reports-hero-card">
-        <div className="reports-hero-header">
-          <div>
-            <span className="badge-comparison">CORRIDOR PERFORMANCE BENCHMARK</span>
-            <h2>Conventional Manual Planning vs SolveX Optimized Coordination</h2>
-            <p className="text-muted text-sm">
-              Simulated weekly aggregate for Palakkad Division (PGT–OTP–SRR–TIR–CLT mainlines)
+      {totalPlannedBlocks === 0 && totalRequests === 0 ? (
+        <div className="table-card" style={{ padding: '64px 24px', textAlign: 'center' }}>
+          <div style={{ maxWidth: '460px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+            <BarChart3 size={48} style={{ color: 'var(--slate-400)' }} />
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--slate-800)', margin: 0 }}>
+              No Corridor Reports Generated Yet
+            </h2>
+            <p style={{ color: 'var(--slate-500)', fontSize: '14px', lineHeight: '1.5', margin: 0 }}>
+              Operational analytics and efficiency benchmarks will calculate automatically once maintenance requests are submitted and scheduled into track blocks.
             </p>
+            <button
+              className="btn-primary"
+              style={{ marginTop: '8px' }}
+              onClick={() => navigateTo('Maintenance Requests')}
+            >
+              Submit Maintenance Request
+            </button>
           </div>
         </div>
+      ) : (
+        <>
+        {/* Hero Benchmark: Before vs After Optimization */}
+        <div className="reports-hero-card">
+          <div className="reports-hero-header">
+            <div>
+              <span className="badge-comparison">CORRIDOR PERFORMANCE BENCHMARK</span>
+              <h2>Conventional Manual Planning vs SolveX Optimized Coordination</h2>
+              <p className="text-muted text-sm">
+                Simulated aggregate for Palakkad Division (PGT–OTP–SRR–TIR–CLT mainlines)
+              </p>
+            </div>
+          </div>
 
-        <div className="impact-table-wrapper">
-          <table className="impact-table">
-            <thead>
-              <tr>
-                <th>Operational Metric</th>
-                <th>Conventional Manual Planning</th>
-                <th>SolveX AI Optimized Plan</th>
-                <th>Net Efficiency Gain</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Total Track Block Hours Imposed</strong></td>
-                <td><span className="val-bad">18.5 Hours</span></td>
-                <td><span className="val-good">13.0 Hours</span></td>
-                <td><strong className="text-success">↓ 5.5 Hours Saved (-29.7%)</strong></td>
-              </tr>
-              <tr>
-                <td><strong>Maintenance Jobs Completed</strong></td>
-                <td><span className="val-bad">16 Jobs</span></td>
-                <td><span className="val-good">21 Jobs</span></td>
-                <td><strong className="text-success">↑ +5 Jobs (+31.2% Throughput)</strong></td>
-              </tr>
-              <tr>
-                <td><strong>Train Path Conflicts Encountered</strong></td>
-                <td><span className="val-bad">11 Conflicts</span></td>
-                <td><span className="val-good">4 Conflicts</span></td>
-                <td><strong className="text-success">↓ 7 Conflicts Resolved (-63.6%)</strong></td>
-              </tr>
-              <tr>
-                <td><strong>Estimated Train Detention / Delays</strong></td>
-                <td><span className="val-bad">68 Minutes</span></td>
-                <td><span className="val-good">31 Minutes</span></td>
-                <td><strong className="text-success">↓ 37 Min Saved (-54.4%)</strong></td>
-              </tr>
-              <tr>
-                <td><strong>Overall Section Asset Availability</strong></td>
-                <td><span className="val-bad">88.2%</span></td>
-                <td><span className="val-good">92.4%</span></td>
-                <td><strong className="text-success">↑ +4.2% Availability</strong></td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="impact-table-wrapper">
+            <table className="impact-table">
+              <thead>
+                <tr>
+                  <th>Operational Metric</th>
+                  <th>Conventional Manual Planning</th>
+                  <th>SolveX AI Optimized Plan</th>
+                  <th>Net Efficiency Gain</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Total Track Block Hours Imposed</strong></td>
+                  <td><span className="val-bad">{(totalPlannedBlocks * 3.5).toFixed(1)} Hours</span></td>
+                  <td><span className="val-good">{(totalPlannedBlocks * 2.2).toFixed(1)} Hours</span></td>
+                  <td><strong className="text-success">↓ {(totalPlannedBlocks * 1.3).toFixed(1)} Hours Saved</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>Maintenance Jobs Completed</strong></td>
+                  <td><span className="val-bad">{totalRequests} Jobs</span></td>
+                  <td><span className="val-good">{totalRequests} Jobs</span></td>
+                  <td><strong className="text-success">Bundled in Single Possession Windows</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
       {/* 4 Analytics Visual Cards */}
       <div className="dashboard-grid-two">
@@ -235,6 +242,8 @@ export const ReportsPage: React.FC = () => {
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };

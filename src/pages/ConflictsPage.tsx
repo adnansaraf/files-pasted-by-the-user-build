@@ -16,14 +16,14 @@ import { GanttTimeline } from '../components/GanttTimeline';
 export const ConflictsPage: React.FC = () => {
   const { conflicts, navigateTo, setSelectedSectionId } = useApp();
   const [selectedSeverity, setSelectedSeverity] = useState<string>('All');
-  const [activeConflictId, setActiveConflictId] = useState<string>('CONF-801');
+  const [activeConflictId, setActiveConflictId] = useState<string | null>(conflicts[0]?.id || null);
 
   const criticalCount = conflicts.filter(c => c.severity === 'Critical').length;
   const highCount = conflicts.filter(c => c.severity === 'High').length;
   const mediumCount = conflicts.filter(c => c.severity === 'Medium').length;
   const resolvedCount = conflicts.filter(c => c.severity === 'Resolved').length;
 
-  const activeConflict = conflicts.find(c => c.id === activeConflictId) || conflicts[0];
+  const activeConflict = conflicts.find(c => c.id === activeConflictId) || conflicts[0] || null;
 
   const filteredConflicts = conflicts.filter(c => {
     if (selectedSeverity === 'All') return true;
@@ -90,7 +90,29 @@ export const ConflictsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Conflict Detail Hero Box */}
+      {/* Empty State or Active Conflict Detail */}
+      {!activeConflict ? (
+        <div className="table-card" style={{ padding: '60px 24px', textAlign: 'center' }}>
+          <div style={{ maxWidth: '480px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <CheckCircle2 size={48} style={{ color: '#16a34a' }} />
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--slate-800)', margin: 0 }}>
+              Zero Operational Conflicts Detected
+            </h2>
+            <p style={{ color: 'var(--slate-500)', fontSize: '14px', lineHeight: '1.5', margin: 0 }}>
+              All current train paths have clear clearance and no maintenance block overlaps are currently active on Palakkad Division.
+            </p>
+            <button
+              className="btn-primary"
+              style={{ marginTop: '8px' }}
+              onClick={() => navigateTo('Maintenance Requests')}
+            >
+              Go to Maintenance Requests
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+        {/* Main Conflict Detail Hero Box */}
       <div className="conflict-hero-card">
         <div className="conflict-hero-header">
           <div className="conflict-icon-large">
@@ -238,6 +260,8 @@ export const ConflictsPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </div>
   );
 };
