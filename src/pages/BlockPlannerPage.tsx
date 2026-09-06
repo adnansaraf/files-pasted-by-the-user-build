@@ -109,26 +109,27 @@ export const BlockPlannerPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Critical Overlap Notice Banner */}
-      <div className="planner-alert-banner">
-        <TriangleAlert size={18} className="text-danger flex-shrink-0" />
-        <div className="alert-banner-text">
-          <strong>Path Conflict Alert on Section A–B (PGT–OTP):</strong>
-          <span>
-            Requested block (02:00–05:00) intersects 12617 Mangala Lakshadweep Superfast passage at 03:15.
-            SolveX recommends advancing window to 01:00–04:00 (Option A) to preserve passenger punctuality.
-          </span>
+      {/* Critical Overlap Notice Banner (only when real conflicts exist) */}
+      {conflicts.length > 0 && (
+        <div className="planner-alert-banner">
+          <TriangleAlert size={18} className="text-danger flex-shrink-0" />
+          <div className="alert-banner-text">
+            <strong>Path Conflict Alert on Section {conflicts[0].sectionName}:</strong>
+            <span>
+              {conflicts[0].description}. Recommended resolution: {conflicts[0].alternatives?.[0]?.label || 'Use non-clashing window'}.
+            </span>
+          </div>
+          <button
+            className="btn-danger-sm"
+            onClick={() => {
+              setSelectedSectionId(conflicts[0].sectionId);
+              navigateTo('Conflicts');
+            }}
+          >
+            Resolve Conflict
+          </button>
         </div>
-        <button
-          className="btn-danger-sm"
-          onClick={() => {
-            setSelectedSectionId('A-B');
-            navigateTo('Conflicts');
-          }}
-        >
-          Resolve Conflict
-        </button>
-      </div>
+      )}
 
       {/* Full Interactive 24-Hour Gantt Chart */}
       <div className="planner-gantt-card">

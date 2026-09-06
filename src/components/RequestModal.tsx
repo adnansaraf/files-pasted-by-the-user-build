@@ -62,7 +62,13 @@ export const RequestModal: React.FC = () => {
           section: sectionId,
           startTime: startTime,
           duration: requestedDuration,
-          priority: priority
+          priority: priority,
+          dept: dept,
+          workType: workType,
+          description: description || `${workType} on requested section under standard divisional maintenance protocols.`,
+          preferredTimeWindow: preferredTimeWindow,
+          constraints: constraints,
+          resources: resources
         })
       });
 
@@ -89,7 +95,8 @@ export const RequestModal: React.FC = () => {
       deadline,
       constraints,
       resources,
-      aiAnalysis: aiResult
+      aiAnalysis: aiResult,
+      id: aiResult?.id
     });
 
     setIsNewRequestModalOpen(false);

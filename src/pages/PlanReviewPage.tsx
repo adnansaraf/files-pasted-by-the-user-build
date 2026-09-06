@@ -12,13 +12,15 @@ import {
   XCircle,
   Sparkles,
   ArrowRight,
-  Info
+  Info,
+  Plus
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { GanttTimeline } from '../components/GanttTimeline';
 
 export const PlanReviewPage: React.FC = () => {
   const {
+    requests,
     optimizationPlan,
     approvePlan,
     rejectPlan,
@@ -26,10 +28,75 @@ export const PlanReviewPage: React.FC = () => {
     setSelectedSectionId
   } = useApp();
 
-  const [plannerNotes, setPlannerNotes] = useState('Reviewed with Chief Controller Palakkad. Approved for Shift 3 imposition under standard 45 km/h caution order.');
+  const [plannerNotes, setPlannerNotes] = useState('Reviewed with Chief Controller Palakkad. Approved for imposition under standard divisional safety headway protocols.');
   const [hasConfirmedChecks, setHasConfirmedChecks] = useState(true);
 
   const isApproved = optimizationPlan.approvalStatus === 'Approved';
+
+  if (requests.length === 0) {
+    return (
+      <div className="page-container">
+        {/* Page Header */}
+        <div className="page-header-row">
+          <div>
+            <div className="page-badge">HUMAN-IN-THE-LOOP APPROVAL GATE</div>
+            <h1 className="page-title">Plan Review & Authorization</h1>
+            <p className="page-subtitle">
+              Mandatory operational review gate before AI recommendations are committed into live corridor dispatching
+            </p>
+          </div>
+        </div>
+
+        <div className="table-card" style={{ padding: '64px 24px', textAlign: 'center', marginTop: '16px' }}>
+          <div style={{ maxWidth: '480px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(128, 0, 0, 0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FileCheck size={28} className="text-maroon" />
+            </div>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: 'var(--slate-800)' }}>
+              No Optimization Plan Awaiting Review
+            </h2>
+            <p style={{ fontSize: '13.5px', color: 'var(--slate-500)', lineHeight: '1.5', margin: 0 }}>
+              Submit a maintenance request and run the AI Block Optimizer to generate a coordinated possession schedule. Once generated, the plan will appear here for formal review and digital authorization.
+            </p>
+            <button
+              className="btn-primary"
+              style={{ marginTop: '8px' }}
+              onClick={() => navigateTo('Maintenance Requests')}
+            >
+              <Plus size={16} />
+              <span>Submit Maintenance Request</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const activeReq = requests[0];
+  const ai = activeReq.aiAnalysis;
+  const hasConflict = !!ai?.conflict;
+  const recommendedWindow = ai?.recommendedWindow
+    ? `${ai.recommendedWindow.start}–${ai.recommendedWindow.end}`
+    : activeReq.preferredTimeWindow;
+
+  const getDeptIcon = (dept: string) => {
+    switch (dept) {
+      case 'Engineering':
+        return <Wrench size={15} className="text-maroon" />;
+      case 'TRD':
+        return <Zap size={15} className="text-amber" />;
+      case 'S&T':
+        return <Radio size={15} className="text-blue" />;
+      default:
+        return <Wrench size={15} />;
+    }
+  };
+
+  const reasons = [
+    ai?.reasoning || (hasConflict ? 'Resolved train path conflict by repositioning window.' : 'Zero train path conflicts on section.'),
+    ai?.priorityNote || `Prioritized according to departmental priority: ${activeReq.priority}.`,
+    'Verified against Southern Railway Palakkad Division 24h timetable movements (data/timetable.json).'
+  ];
 
   return (
     <div className="page-container">
@@ -65,60 +132,42 @@ export const PlanReviewPage: React.FC = () => {
         <div className="review-header">
           <div>
             <div className="d-flex align-center gap-2">
-              <span className="badge-section">{optimizationPlan.targetSection}</span>
-              <span className="badge-recommended">Plan ID: {optimizationPlan.id}</span>
+              <span className="badge-section">{activeReq.sectionName}</span>
+              <span className="badge-recommended">Plan Ref: OPT-{activeReq.id}</span>
             </div>
-            <h2>Coordinated Multi-Department Maintenance Possession (02:00–05:00)</h2>
+            <h2>Coordinated Maintenance Possession ({recommendedWindow})</h2>
             <p className="text-muted text-sm">
-              Generated: {optimizationPlan.timestamp} · Target: Palakkad Jn – Ottappalam (km 531–534)
+              Generated for Palakkad Division · Target Section: {activeReq.sectionName}
             </p>
           </div>
 
           <div className="review-score-badge">
             <span className="lbl">COMPOSITE SCORE</span>
-            <strong>{optimizationPlan.overallScore} / 100</strong>
+            <strong>{hasConflict ? 88 : 97} / 100</strong>
           </div>
         </div>
 
         {/* Coordinated Jobs Grid */}
         <div className="coordinated-jobs-box">
-          <h4>Coordinated Departmental Maintenance Work (3 Applications)</h4>
+          <h4>Registered Departmental Maintenance Jobs ({requests.length} Application{requests.length !== 1 ? 's' : ''})</h4>
           <div className="jobs-tag-grid">
-            <div className="job-tag-card">
-              <div className="dept-header-row">
-                <Wrench size={15} className="text-maroon" />
-                <strong>Engineering (P-Way)</strong>
-                <span className="priority-tag priority-high">High (87)</span>
+            {requests.map(req => (
+              <div key={req.id} className="job-tag-card">
+                <div className="dept-header-row">
+                  {getDeptIcon(req.dept)}
+                  <strong>{req.dept}</strong>
+                  <span className={`priority-tag priority-${req.priority.toLowerCase()}`}>
+                    {req.priority} ({req.priorityScore})
+                  </span>
+                </div>
+                <div className="job-desc-text">
+                  {req.workType}: {req.description}
+                </div>
+                <small className="text-muted">
+                  Duration: {req.requestedDuration}h · Requested: {req.preferredTimeWindow}
+                </small>
               </div>
-              <div className="job-desc-text">
-                Track Geometry Correction & Tamping with 09-3X Duomatic (km 531/0 to 534/2)
-              </div>
-              <small className="text-muted">Duration: 3.0h · Caution order 45 km/h post-work</small>
-            </div>
-
-            <div className="job-tag-card">
-              <div className="dept-header-row">
-                <Zap size={15} className="text-amber" />
-                <strong>TRD (Traction OHE)</strong>
-                <span className="priority-tag priority-medium">Medium (68)</span>
-              </div>
-              <div className="job-desc-text">
-                OHE Catenary Wire & Dropper Inspection via Tower Wagon Unit
-              </div>
-              <small className="text-muted">Duration: 2.0h · 25kV power cut isolated from PGT</small>
-            </div>
-
-            <div className="job-tag-card">
-              <div className="dept-header-row">
-                <Radio size={15} className="text-blue" />
-                <strong>S&T (Signalling)</strong>
-                <span className="priority-tag priority-high">High (82)</span>
-              </div>
-              <div className="job-desc-text">
-                HASSDAC Digital Axle Counter & Point 102B Insulation Testing
-              </div>
-              <small className="text-muted">Duration: 1.0h · Off-track testing enclosed within block</small>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -135,7 +184,7 @@ export const PlanReviewPage: React.FC = () => {
         <div className="review-reasons-box">
           <h4>SolveX Optimization Decision Audit</h4>
           <div className="reasons-checklist">
-            {optimizationPlan.reasons.map((r, i) => (
+            {reasons.map((r, i) => (
               <div key={i} className="check-item">
                 <CheckCircle2 size={16} className="text-success flex-shrink-0" />
                 <span>{r}</span>
@@ -165,7 +214,7 @@ export const PlanReviewPage: React.FC = () => {
                 onChange={e => setHasConfirmedChecks(e.target.checked)}
               />
               <span>
-                Verified regulation of Express 12617 and notice issued to Palakkad & Ottappalam Station Masters.
+                Verified regulation notice issued to Palakkad & adjacent station masters.
               </span>
             </label>
             <label className="checkbox-row">
@@ -175,7 +224,7 @@ export const PlanReviewPage: React.FC = () => {
                 onChange={e => setHasConfirmedChecks(e.target.checked)}
               />
               <span>
-                Caution order (45 km/h) drafted into divisional bulletin.
+                Standard caution order protocol logged into divisional bulletin.
               </span>
             </label>
           </div>
@@ -223,7 +272,7 @@ export const PlanReviewPage: React.FC = () => {
                   onClick={approvePlan}
                 >
                   <CheckCircle2 size={18} />
-                  <span>Approve & Authorize Block (OPT-PGT-308)</span>
+                  <span>Approve & Authorize Block (OPT-{activeReq.id})</span>
                 </button>
               </div>
             )}

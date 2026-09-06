@@ -91,8 +91,28 @@ export default async function handler(req, res) {
     }
   }
 
+  if (req.method === 'GET') {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SECRET_KEY) {
+      return res.status(200).json({ requests: [] });
+    }
+    try {
+      const { data, error } = await supabase
+        .from('maintenance_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('Error fetching maintenance requests:', error);
+        return res.status(500).json({ error: error.message });
+      }
+      return res.status(200).json({ requests: data || [] });
+    } catch (err) {
+      console.error('Error fetching maintenance requests:', err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
+    return res.status(405).json({ error: 'Method Not Allowed. Use GET or POST.' });
   }
 
   try {
@@ -277,24 +297,48 @@ Return STRICT JSON only matching this exact schema:
     }
 
     // 6. Insert request + ai_result into maintenance_requests Supabase table
+    let insertedId = null;
     try {
       if (process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY) {
         const startTimeIso = new Date(`2026-09-06T${startTime}:00+05:30`).toISOString();
-        await supabase.from('maintenance_requests').insert({
+        const requestMeta = {
+          dept: body?.dept || 'Engineering',
+          workType: body?.workType || 'Track Possession Maintenance',
+          description: body?.description || '',
+          preferredTimeWindow: body?.preferredTimeWindow || `${startTime}–${endTimeStr}`,
+          constraints: body?.constraints || '',
+          resources: body?.resources || ''
+        };
+        const aiResultToSave = {
+          ...parsedResult,
+          requestMeta
+        };
+
+        const { data: inserted, error: dbErr } = await supabase.from('maintenance_requests').insert({
           section: normalizedSection,
           start_time: startTimeIso,
           duration_minutes: Math.round(durationNum * 60),
           priority: priority || 'High',
           status: 'Pending',
-          ai_result: parsedResult
-        });
+          ai_result: aiResultToSave
+        }).select();
+
+        if (dbErr) {
+          console.error('Failed to insert maintenance request into Supabase:', dbErr);
+        } else if (inserted && inserted.length > 0) {
+          insertedId = inserted[0].id;
+        }
       }
     } catch (dbErr) {
       console.error('Failed to insert maintenance request into Supabase:', dbErr);
     }
 
     // 7. Return the parsed AI result to the frontend
-    return res.status(200).json(parsedResult);
+    return res.status(200).json({
+      ...parsedResult,
+      id: insertedId ? `REQ-${insertedId.slice(0, 8)}` : undefined,
+      dbId: insertedId
+    });
   } catch (err) {
     console.error('Error processing maintenance request:', err);
     return res.status(500).json({

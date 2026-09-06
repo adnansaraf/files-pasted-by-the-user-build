@@ -48,15 +48,6 @@ export const ActiveBlocksPage: React.FC = () => {
 
         <div className="header-actions-group">
           <button
-            className="btn-danger-outline"
-            onClick={() => {
-              reportDelay('BLK-204', 45, 'Subgrade instability at km 532 requiring packing passes');
-            }}
-          >
-            <RotateCcw size={15} />
-            <span>Simulate Overrun on BLK-204</span>
-          </button>
-          <button
             className="btn-primary"
             onClick={() => navigateTo('Block Planner')}
           >
@@ -73,15 +64,15 @@ export const ActiveBlocksPage: React.FC = () => {
           <span className="stat-box-label">Active Possessions</span>
         </div>
         <div className="stat-box">
-          <span className="stat-box-num text-danger">{delayedCount > 0 ? delayedCount : '1 Pending'}</span>
+          <span className={`stat-box-num ${delayedCount > 0 ? 'text-danger' : 'text-success'}`}>{delayedCount}</span>
           <span className="stat-box-label">Overrun / Delay Alerts</span>
         </div>
         <div className="stat-box">
-          <span className="stat-box-num text-info">2</span>
+          <span className="stat-box-num text-info">{blocks.filter(b => b.overheadPowerCutRequired).length}</span>
           <span className="stat-box-label">OHE Power Cut Offs Active</span>
         </div>
         <div className="stat-box">
-          <span className="stat-box-num text-navy">42 Staff</span>
+          <span className="stat-box-num text-navy">{blocks.filter(b => !!b.crewAssigned).length} Gangs</span>
           <span className="stat-box-label">On-Track Personnel Deployed</span>
         </div>
       </div>
@@ -158,7 +149,7 @@ export const ActiveBlocksPage: React.FC = () => {
                     </td>
                     <td>
                       <strong className={isOverrun ? 'text-danger font-bold' : ''}>
-                        {b.expectedEnd} {isOverrun ? '(+45m)' : ''}
+                        {b.expectedEnd} {isOverrun ? '(Delayed)' : ''}
                       </strong>
                     </td>
                     <td>

@@ -129,6 +129,7 @@ interface AppContextType {
   
   // Actions
   addRequest: (req: {
+    id?: string;
     dept: Department;
     sectionId: string;
     workType: string;
@@ -233,6 +234,129 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return [];
     }
   });
+
+  // Hydrate requests & conflicts from Supabase on mount
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadFromSupabase() {
+      try {
+        const res = await fetch('/api/process-request');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && Array.isArray(data.requests) && !isCancelled) {
+          const loadedRequests: MaintenanceRequest[] = data.requests.map((r: any) => {
+            const meta = r.ai_result?.requestMeta || {};
+            const sec = sections.find(s => s.id === r.section);
+            const secName = sec ? `${sec.fromCode}–${sec.toCode} (${sec.fromName}–${sec.toName})` : (r.section || 'PGT-SRR');
+            const durHours = r.duration_minutes ? Number((r.duration_minutes / 60).toFixed(1)) : 2.0;
+
+            let win = meta.preferredTimeWindow;
+            if (!win && r.start_time) {
+              try {
+                const d = new Date(r.start_time);
+                const startH = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' });
+                const endD = new Date(d.getTime() + (r.duration_minutes || 120) * 60000);
+                const endH = endD.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' });
+                win = `${startH}–${endH}`;
+              } catch {
+                win = '02:00–04:00';
+              }
+            }
+
+            const priority: PriorityLevel = (r.priority as PriorityLevel) || 'High';
+            let prioScore = 70;
+            if (priority === 'Critical') prioScore = 93;
+            else if (priority === 'High') prioScore = 84;
+            else if (priority === 'Medium') prioScore = 65;
+            else prioScore = 48;
+
+            const reqId = r.id ? (r.id.length > 10 ? `REQ-${r.id.slice(0, 8)}` : `REQ-${r.id}`) : `REQ-${Date.now()}`;
+
+            return {
+              id: reqId,
+              dept: (meta.dept as Department) || 'Engineering',
+              sectionId: r.section || 'PGT-SRR',
+              sectionName: secName,
+              workType: meta.workType || 'Track Possession Maintenance',
+              description: meta.description || `${meta.workType || 'Track Maintenance'} on ${secName}`,
+              requestedDuration: durHours,
+              predictedDuration: Number((durHours * 1.08).toFixed(1)),
+              historicalSamples: [durHours, Number((durHours * 1.05).toFixed(1)), Number((durHours * 1.1).toFixed(1))],
+              preferredTimeWindow: win || '02:00–04:00',
+              priority,
+              priorityScore: prioScore,
+              factors: {
+                safetyImpact: Math.round(prioScore * 0.3),
+                assetCriticality: Math.round(prioScore * 0.25),
+                urgency: Math.round(prioScore * 0.2),
+                failureProbability: Math.round(prioScore * 0.15),
+                operationalImpact: Math.round(prioScore * 0.1)
+              },
+              deadline: meta.deadline || 'Tonight (Shift 3)',
+              constraints: meta.constraints || 'Power cut & traffic block required',
+              resources: meta.resources || 'Standard divisional maintenance gang',
+              status: (r.status as any) || 'Pending',
+              submissionDate: r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN') : 'Today',
+              aiAnalysis: r.ai_result || undefined
+            };
+          });
+
+          setRequests(loadedRequests);
+
+          const loadedConflicts: OperationalConflict[] = [];
+          for (const req of loadedRequests) {
+            if (req.aiAnalysis && req.aiAnalysis.conflict) {
+              const trainName = req.aiAnalysis.conflictingTrain || 'Scheduled Train Service';
+              const colTime = req.aiAnalysis.collisionTime || req.preferredTimeWindow.split('–')[0] || '02:00';
+              const recWindow = req.aiAnalysis.recommendedWindow
+                ? `${req.aiAnalysis.recommendedWindow.start}–${req.aiAnalysis.recommendedWindow.end}`
+                : '03:30–05:30';
+
+              loadedConflicts.push({
+                id: `CONF-${req.id}`,
+                severity: req.priority === 'Critical' ? 'Critical' : req.priority === 'High' ? 'High' : 'Medium',
+                sectionId: req.sectionId,
+                sectionName: req.sectionName,
+                blockTime: req.preferredTimeWindow,
+                conflictingTrain: {
+                  trainNo: (trainName.match(/\d+/) || ['Special'])[0],
+                  trainName: trainName.replace(/\s*\(\d+\)/, ''),
+                  category: trainName.includes('SF') || trainName.includes('Superfast') ? 'Superfast Express' : 'Mail/Express',
+                  sectionId: req.sectionId,
+                  entryTime: colTime,
+                  exitTime: colTime,
+                  priority: 1,
+                  allowedDelayMin: 15
+                },
+                description: `AI Conflict Alert: Requested block overlaps with ${trainName} at ${colTime} IST (${req.aiAnalysis.reasoning?.slice(0, 100) || 'Schedule conflict'}...)`,
+                conflictPointTime: colTime,
+                impactScore: req.priority === 'Critical' ? 95 : 82,
+                status: 'Unresolved',
+                alternatives: [
+                  {
+                    optionId: `OPT-${req.id}`,
+                    label: `AI Recommended Window (${recWindow})`,
+                    window: recWindow,
+                    trainImpact: '0 min detention / Zero collision headway',
+                    trainDelayMin: 0,
+                    isRecommended: true,
+                    reason: req.aiAnalysis.reasoning || 'Non-clashing timetable gap'
+                  }
+                ]
+              });
+            }
+          }
+          setConflicts(loadedConflicts);
+        }
+      } catch (err) {
+        console.warn('Could not fetch initial requests from Supabase, relying on localStorage:', err);
+      }
+    }
+    loadFromSupabase();
+    return () => {
+      isCancelled = true;
+    };
+  }, [sections]);
 
   // Sync state changes to localStorage
   useEffect(() => {
@@ -462,6 +586,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [whatIfState]);
 
   const addRequest = (newReqData: {
+    id?: string;
     dept: Department;
     sectionId: string;
     workType: string;
@@ -500,7 +625,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     else if (newReqData.priority === 'Medium') prioScore = 65;
     else prioScore = 48;
 
-    const newId = `REQ-${1024 + requests.length}`;
+    const newId = newReqData.id || `REQ-${1024 + requests.length}`;
     const newReq: MaintenanceRequest = {
       id: newId,
       dept: newReqData.dept,
@@ -737,8 +862,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setConflicts([]);
     setOptimizationPlan(INITIAL_OPTIMIZATION_PLAN);
     setOverrunScenario(OVERRUN_SCENARIO_DATA);
-    setSelectedSectionId('A-B');
+    setSelectedSectionId('PGT-SRR');
     setNotifications([]);
+    try {
+      localStorage.removeItem('solvex_requests');
+      localStorage.removeItem('solvex_blocks');
+      localStorage.removeItem('solvex_conflicts');
+      localStorage.removeItem('solvex_notifications');
+    } catch (e) {
+      console.warn('Failed to clear localStorage keys', e);
+    }
   };
 
   return (

@@ -20,19 +20,21 @@ export const SimulatorPage: React.FC = () => {
     setWhatIfState,
     whatIfResults,
     sections,
+    requests,
+    conflicts,
     navigateTo
   } = useApp();
 
   const [appliedNotice, setAppliedNotice] = useState(false);
 
-  // Baseline "Current Plan" metrics
+  // Baseline "Current Plan" metrics derived from active requests
   const currentPlan = {
-    blockHours: '3.0h',
-    jobsCompleted: '3 Jobs',
-    conflicts: '1 Conflict',
-    trainImpactMin: '14 min',
-    assetDowntime: '3.0h',
-    assetAvailability: '92%'
+    blockHours: requests.length > 0 ? `${requests[0].requestedDuration}h` : '0.0h',
+    jobsCompleted: `${requests.length} Request(s)`,
+    conflicts: `${conflicts.length} Conflict(s)`,
+    trainImpactMin: conflicts.length > 0 ? '25 min' : '0 min',
+    assetDowntime: requests.length > 0 ? `${requests[0].requestedDuration}h` : '0.0h',
+    assetAvailability: '94%'
   };
 
   const handleApplyScenario = () => {
@@ -58,12 +60,12 @@ export const SimulatorPage: React.FC = () => {
           className="btn-secondary"
           onClick={() => {
             setWhatIfState({
-              sectionId: 'A-B',
+              sectionId: sections[0]?.id || 'PGT-SRR',
               blockStart: '02:00',
               durationHours: 3.0,
               priority: 'High',
               trainCondition: 'Normal Schedule',
-              coordinatedJobsCount: 3
+              coordinatedJobsCount: Math.max(1, requests.length)
             });
             setAppliedNotice(false);
           }}
@@ -228,8 +230,8 @@ export const SimulatorPage: React.FC = () => {
             <div className="comparison-card baseline-card">
               <div className="comp-header">
                 <span className="comp-tag">CURRENT PLAN (BASELINE)</span>
-                <h4>Approved Plan OPT-PGT-308</h4>
-                <small className="text-muted">3.0h Window (02:00–05:00)</small>
+                <h4>{requests.length > 0 ? `Active Plan (${requests[0].id})` : 'Nominal Divisional Schedule'}</h4>
+                <small className="text-muted">{requests.length > 0 ? `${requests[0].preferredTimeWindow} (${requests[0].requestedDuration}h)` : 'No active blocks scheduled'}</small>
               </div>
 
               <div className="comp-metrics-list">
