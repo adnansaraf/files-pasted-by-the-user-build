@@ -218,9 +218,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [blocks, setBlocks] = useState<MaintenanceBlock[]>(() => {
     try {
       const saved = localStorage.getItem('solvex_blocks');
-      return saved ? JSON.parse(saved) : [];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+      return INITIAL_BLOCKS;
     } catch {
-      return [];
+      return INITIAL_BLOCKS;
     }
   });
   const [conflicts, setConflicts] = useState<OperationalConflict[]>(() => {
@@ -455,6 +461,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // Load work zones specific to this division
     const divisionWzs = MAINTENANCE_WORK_ZONES.filter(wz => wz.divisionId === selectedDivisionId);
     setWorkZones(divisionWzs);
+
+    // Ensure blocks for this division are populated if current blocks list is empty
+    setBlocks(prev => {
+      if (!prev || prev.length === 0) {
+        return getDivisionMockData(selectedDivisionId).blocks || INITIAL_BLOCKS;
+      }
+      return prev;
+    });
 
     // Reset drilldown level and active selections on division switch
     setSelectedDrillDownSectionId(null);
@@ -721,6 +735,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
 
       setConflicts(prev => [newConflict, ...prev]);
+    } else {
+      // Clear path verified by AI - instantiate active/planned maintenance block
+      const [startH, endH] = (newReqData.preferredTimeWindow || '02:00–04:00').split(/[–\-]/).map(s => s.trim());
+      const newBlock: MaintenanceBlock = {
+        id: `BLK-${newReqData.sectionId}-${Date.now().toString().slice(-4)}`,
+        sectionId: newReqData.sectionId,
+        sectionName: secName,
+        departments: [newReqData.dept],
+        requestIds: [newId],
+        workSummary: `${newReqData.workType} (${secName})`,
+        scheduledStart: startH || '02:00',
+        scheduledEnd: endH || '04:00',
+        actualStart: startH || '02:00',
+        expectedEnd: endH || '04:00',
+        durationHours: newReqData.requestedDuration,
+        progressPercent: 20,
+        status: 'Active',
+        priority: newReqData.priority,
+        affectedTrains: [],
+        crewAssigned: newReqData.resources || 'Division Track Maintenance Unit',
+        overheadPowerCutRequired: (newReqData.constraints || '').toLowerCase().includes('power') || newReqData.dept === 'TRD',
+        speedRestrictionImposed: (newReqData.constraints || '').toLowerCase().includes('caution') ? '45 km/h Caution Order' : undefined,
+        notes: newReqData.description
+      };
+      setBlocks(prev => [newBlock, ...prev]);
     }
 
     setNotifications(prev => [
@@ -840,16 +879,49 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     // Update requests to planned/scheduled
     setRequests(prev =>
-      prev.map(r =>
-        ['REQ-1024', 'REQ-1025', 'REQ-1026'].includes(r.id) ? { ...r, status: 'Planned' } : r
-      )
+      prev.map(r => ({ ...r, status: 'Planned' }))
     );
+
+    // Ensure approved request is converted into an active/planned block in Live Execution Register
+    setBlocks(prev => {
+      const existingReqIds = new Set(prev.flatMap(b => b.requestIds || []));
+      const additions: MaintenanceBlock[] = [];
+      requests.forEach(req => {
+        if (!existingReqIds.has(req.id)) {
+          const [sh, eh] = (req.aiAnalysis?.recommendedWindow 
+            ? `${req.aiAnalysis.recommendedWindow.start}–${req.aiAnalysis.recommendedWindow.end}`
+            : req.preferredTimeWindow).split(/[–\-]/).map(s => s.trim());
+          additions.push({
+            id: `BLK-${req.sectionId}-${Date.now().toString().slice(-4)}`,
+            sectionId: req.sectionId,
+            sectionName: req.sectionName,
+            departments: [req.dept],
+            requestIds: [req.id],
+            workSummary: `${req.workType} (${req.sectionName})`,
+            scheduledStart: sh || '02:00',
+            scheduledEnd: eh || '04:00',
+            actualStart: sh || '02:00',
+            expectedEnd: eh || '04:00',
+            durationHours: req.requestedDuration,
+            progressPercent: 30,
+            status: 'Active',
+            priority: req.priority,
+            affectedTrains: [],
+            crewAssigned: req.resources || 'Division Track Gang Unit',
+            overheadPowerCutRequired: req.dept === 'TRD' || (req.constraints || '').toLowerCase().includes('power'),
+            speedRestrictionImposed: (req.constraints || '').toLowerCase().includes('caution') ? '45 km/h Caution Order' : undefined,
+            notes: req.description
+          });
+        }
+      });
+      return [...additions, ...prev];
+    });
 
     setNotifications(prev => [
       {
         id: `N-${Date.now()}`,
-        title: `Optimization Plan Approved`,
-        desc: `Plan OPT-PGT-308 on A–B (PGT–OTP) signed off by Planner. Integrated into 24h schedule.`,
+        title: `Corridor Plan Approved`,
+        desc: `AI-optimized window approved. Track possessions scheduled in live execution register.`,
         time: 'Just now',
         type: 'success'
       },
@@ -924,7 +996,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const resetAllDemoData = () => {
     setSections(SECTIONS);
     setRequests([]);
-    setBlocks([]);
+    setBlocks(INITIAL_BLOCKS);
     setConflicts([]);
     setOptimizationPlan(INITIAL_OPTIMIZATION_PLAN);
     setOverrunScenario(OVERRUN_SCENARIO_DATA);

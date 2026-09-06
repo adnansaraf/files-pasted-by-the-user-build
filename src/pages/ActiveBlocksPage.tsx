@@ -23,7 +23,8 @@ export const ActiveBlocksPage: React.FC = () => {
     markBlockComplete,
     setInspectingBlock,
     navigateTo,
-    setSelectedSectionId
+    setSelectedSectionId,
+    setIsNewRequestModalOpen
   } = useApp();
 
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(blocks[0]?.id || null);
@@ -49,6 +50,13 @@ export const ActiveBlocksPage: React.FC = () => {
         <div className="header-actions-group">
           <button
             className="btn-primary"
+            onClick={() => setIsNewRequestModalOpen(true)}
+          >
+            <Plus size={15} />
+            <span>New Request</span>
+          </button>
+          <button
+            className="btn-secondary"
             onClick={() => navigateTo('Block Planner')}
           >
             <Clock size={15} />
@@ -107,6 +115,14 @@ export const ActiveBlocksPage: React.FC = () => {
                     <p style={{ margin: 0, fontSize: '13px', color: 'var(--slate-500)' }}>
                       No active track maintenance or speed restrictions currently operating on Palakkad Division.
                     </p>
+                    <button
+                      className="btn-primary-sm"
+                      style={{ marginTop: '8px' }}
+                      onClick={() => setIsNewRequestModalOpen(true)}
+                    >
+                      <Plus size={14} />
+                      <span>+ Create Track Possession</span>
+                    </button>
                   </div>
                 </td>
               </tr>
