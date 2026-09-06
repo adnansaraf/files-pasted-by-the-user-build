@@ -149,6 +149,8 @@ interface AppContextType {
       priorityNote: string;
     };
   }) => void;
+  deleteRequest: (requestId: string) => Promise<void>;
+  clearAllRequests: () => Promise<void>;
   
   reportDelay: (blockId: string, extraMinutes: number, reason: string) => void;
   markBlockComplete: (blockId: string) => void;
@@ -192,11 +194,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   );
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  const samplePrefixes = ['REQ-4608e2ef', 'REQ-8a8cbb8e', 'REQ-0424c9a0', 'REQ-22bd94f8', 'REQ-b218c599'];
+  const isSampleRequest = (r: { id: string; workType?: string; description?: string }) => {
+    const id = r.id || '';
+    const wt = (r.workType || '').toLowerCase();
+    const desc = (r.description || '').toLowerCase();
+    return samplePrefixes.some(p => id.startsWith(p)) || wt.includes('kuthira') || desc.includes('kuthira');
+  };
+
   const [sections, setSections] = useState<RailwaySection[]>(SECTIONS);
   const [requests, setRequests] = useState<MaintenanceRequest[]>(() => {
     try {
       const saved = localStorage.getItem('solvex_requests');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed: MaintenanceRequest[] = JSON.parse(saved);
+      const clean = parsed.filter(r => !isSampleRequest(r));
+      localStorage.setItem('solvex_requests', JSON.stringify(clean));
+      return clean;
     } catch {
       return [];
     }
@@ -301,10 +315,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             };
           });
 
-          setRequests(loadedRequests);
+          const cleanLoaded = loadedRequests.filter(r => !isSampleRequest(r));
+          setRequests(cleanLoaded);
+          try {
+            localStorage.setItem('solvex_requests', JSON.stringify(cleanLoaded));
+          } catch {}
+
+          // If sample requests were returned by Supabase, purge them on the server
+          if (cleanLoaded.length !== loadedRequests.length) {
+            fetch('/api/process-request?purgeSample=true', { method: 'DELETE' }).catch(() => {});
+          }
 
           const loadedConflicts: OperationalConflict[] = [];
-          for (const req of loadedRequests) {
+          for (const req of cleanLoaded) {
             if (req.aiAnalysis && req.aiAnalysis.conflict) {
               const trainName = req.aiAnalysis.conflictingTrain || 'Scheduled Train Service';
               const colTime = req.aiAnalysis.collisionTime || req.preferredTimeWindow.split('–')[0] || '02:00';
@@ -851,6 +874,49 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     ]);
   };
 
+  const deleteRequest = async (requestId: string) => {
+    setRequests(prev => {
+      const next = prev.filter(r => r.id !== requestId);
+      try {
+        localStorage.setItem('solvex_requests', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    setConflicts(prev => {
+      const next = prev.filter(c => c.id !== `CONF-${requestId}`);
+      try {
+        localStorage.setItem('solvex_conflicts', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    try {
+      await fetch(`/api/process-request?id=${encodeURIComponent(requestId)}`, {
+        method: 'DELETE'
+      });
+    } catch (e) {
+      console.warn('Failed to delete request from server:', e);
+    }
+  };
+
+  const clearAllRequests = async () => {
+    setRequests([]);
+    setConflicts(prev => prev.filter(c => !c.id.startsWith('CONF-REQ-')));
+    try {
+      localStorage.removeItem('solvex_requests');
+      localStorage.setItem('solvex_conflicts', JSON.stringify([]));
+    } catch {}
+
+    try {
+      await fetch('/api/process-request?all=true', {
+        method: 'DELETE'
+      });
+    } catch (e) {
+      console.warn('Failed to clear all requests on server:', e);
+    }
+  };
+
   const updateSettings = (newSettings: Partial<EngineSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
   };
@@ -920,6 +986,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         isTestRunModalOpen,
         setIsTestRunModalOpen,
         addRequest,
+        deleteRequest,
+        clearAllRequests,
         reportDelay,
         markBlockComplete,
         applyRescheduleOption,

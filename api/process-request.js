@@ -104,15 +104,83 @@ export default async function handler(req, res) {
         console.error('Error fetching maintenance requests:', error);
         return res.status(500).json({ error: error.message });
       }
-      return res.status(200).json({ requests: data || [] });
+      // Automatically purge sample dummy test entries from Supabase and response
+      const samplePrefixes = ['4608e2ef', '8a8cbb8e', '0424c9a0', '22bd94f8', 'b218c599'];
+      const isSample = (r) => {
+        const idStr = String(r.id || '');
+        const meta = r.ai_result?.requestMeta || {};
+        const workType = String(meta.workType || '');
+        const desc = String(meta.description || '');
+        return samplePrefixes.some(p => idStr.startsWith(p)) || workType.includes('kuthira') || desc.includes('kuthira');
+      };
+
+      const sampleRows = (data || []).filter(isSample);
+      if (sampleRows.length > 0) {
+        // Asynchronously delete the sample rows from Supabase
+        const sampleIdsToDelete = sampleRows.map(r => r.id);
+        supabase.from('maintenance_requests').delete().in('id', sampleIdsToDelete).then(() => {
+          console.log(`Purged ${sampleIdsToDelete.length} sample requests from Supabase`);
+        }).catch(err => {
+          console.warn('Could not auto-purge sample requests:', err.message);
+        });
+      }
+
+      const cleanRequests = (data || []).filter(r => !isSample(r));
+      return res.status(200).json({ requests: cleanRequests });
     } catch (err) {
       console.error('Error fetching maintenance requests:', err);
       return res.status(500).json({ error: err.message });
     }
   }
 
+  if (req.method === 'DELETE') {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SECRET_KEY) {
+      return res.status(200).json({ success: true, message: 'No Supabase configured' });
+    }
+    try {
+      const id = req.query?.id || (req.body && typeof req.body === 'object' ? req.body.id : null);
+      const clearAll = req.query?.all === 'true' || id === 'all';
+      const purgeSample = req.query?.purgeSample === 'true';
+
+      if (clearAll) {
+        const { error } = await supabase
+          .from('maintenance_requests')
+          .delete()
+          .neq('id', '00000000-0000-0000-0000-000000000000');
+        if (error) throw error;
+        return res.status(200).json({ success: true, message: 'All maintenance requests cleared from Supabase' });
+      }
+
+      if (purgeSample) {
+        const samplePrefixes = ['4608e2ef', '8a8cbb8e', '0424c9a0', '22bd94f8', 'b218c599'];
+        const filterOr = samplePrefixes.map(p => `id.ilike.${p}%`).join(',');
+        const { error } = await supabase
+          .from('maintenance_requests')
+          .delete()
+          .or(filterOr);
+        if (error) console.warn('Supabase sample purge notice:', error.message);
+        return res.status(200).json({ success: true, message: 'Sample requests purged' });
+      }
+
+      if (id) {
+        const cleanId = String(id).replace(/^REQ-/, '');
+        const { error } = await supabase
+          .from('maintenance_requests')
+          .delete()
+          .or(`id.eq.${cleanId},id.ilike.${cleanId}%`);
+        if (error) throw error;
+        return res.status(200).json({ success: true, message: `Request ${id} deleted` });
+      }
+
+      return res.status(400).json({ error: 'Specify ?id=<id>, ?all=true, or ?purgeSample=true' });
+    } catch (err) {
+      console.error('Error during DELETE operation:', err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed. Use GET or POST.' });
+    return res.status(405).json({ error: 'Method Not Allowed. Use GET, POST, or DELETE.' });
   }
 
   try {

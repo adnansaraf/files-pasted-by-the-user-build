@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Info,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Trash2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Department, MaintenanceRequest, PriorityLevel } from '../types';
@@ -24,7 +25,9 @@ export const RequestsPage: React.FC = () => {
     setSelectedSectionId,
     navigateTo,
     searchQuery,
-    setSearchQuery
+    setSearchQuery,
+    deleteRequest,
+    clearAllRequests
   } = useApp();
 
   const [selectedDept, setSelectedDept] = useState<string>('All');
@@ -74,13 +77,30 @@ export const RequestsPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          className="btn-primary"
-          onClick={() => setIsNewRequestModalOpen(true)}
-        >
-          <Plus size={16} />
-          <span>+ New Maintenance Request</span>
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {requests.length > 0 && (
+            <button
+              className="btn-secondary"
+              style={{ borderColor: '#fca5a5', color: '#b91c1c' }}
+              onClick={() => {
+                if (window.confirm('Are you sure you want to remove all maintenance requests?')) {
+                  clearAllRequests();
+                }
+              }}
+              title="Clear all maintenance requests"
+            >
+              <Trash2 size={15} />
+              <span>Clear All Requests</span>
+            </button>
+          )}
+          <button
+            className="btn-primary"
+            onClick={() => setIsNewRequestModalOpen(true)}
+          >
+            <Plus size={16} />
+            <span>+ New Maintenance Request</span>
+          </button>
+        </div>
       </div>
 
       {/* Statistics Strip */}
@@ -265,12 +285,31 @@ export const RequestsPage: React.FC = () => {
                     </div>
                   </td>
                   <td className="text-right">
-                    <button
-                      className="btn-link-sm"
-                      onClick={() => setActiveRequestDetail(r)}
-                    >
-                      Inspect
-                    </button>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <button
+                        className="btn-link-sm"
+                        onClick={() => setActiveRequestDetail(r)}
+                      >
+                        Inspect
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-secondary-xs"
+                        style={{ color: '#ef4444', borderColor: '#fecdd3', padding: '3px 6px', display: 'inline-flex', alignItems: 'center' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm(`Delete request ${r.id}?`)) {
+                            deleteRequest(r.id);
+                            if (activeRequestDetail?.id === r.id) {
+                              setActiveRequestDetail(null);
+                            }
+                          }
+                        }}
+                        title={`Delete ${r.id}`}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -422,6 +461,19 @@ export const RequestsPage: React.FC = () => {
                 }}
               >
                 View Conflicts Hub
+              </button>
+              <button
+                className="btn-secondary"
+                style={{ borderColor: '#fca5a5', color: '#b91c1c' }}
+                onClick={() => {
+                  if (window.confirm(`Delete request ${activeRequestDetail.id}?`)) {
+                    deleteRequest(activeRequestDetail.id);
+                    setActiveRequestDetail(null);
+                  }
+                }}
+              >
+                <Trash2 size={14} />
+                <span>Delete Request</span>
               </button>
             </div>
           </div>
