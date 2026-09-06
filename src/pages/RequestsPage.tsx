@@ -218,9 +218,30 @@ export const RequestsPage: React.FC = () => {
                   </div>
                 </td>
                 <td>
-                  <span className={`status-pill status-${r.status.toLowerCase()}`}>
-                    {r.status}
-                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span className={`status-pill status-${r.status.toLowerCase()}`}>
+                      {r.status}
+                    </span>
+                    {r.aiAnalysis && (
+                      <span
+                        className={`status-tag`}
+                        style={{
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: r.aiAnalysis.conflict ? '#fee2e2' : '#dcfce7',
+                          color: r.aiAnalysis.conflict ? '#991b1b' : '#166534',
+                          fontWeight: 600,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}
+                      >
+                        <Sparkles size={9} />
+                        {r.aiAnalysis.conflict ? 'AI: Conflict' : 'AI: Clear'}
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="text-right">
                   <button
@@ -282,6 +303,63 @@ export const RequestsPage: React.FC = () => {
               </div>
             </div>
 
+            {/* AI Conflict & Optimizer Card (Styled with existing SolveX cards) */}
+            {activeRequestDetail.aiAnalysis && (
+              <div
+                className="conflict-hero-card"
+                style={{
+                  borderLeftColor: activeRequestDetail.aiAnalysis.conflict ? 'var(--red-600)' : 'var(--green-600)',
+                  margin: '14px 0',
+                  padding: '16px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <Sparkles size={16} className={activeRequestDetail.aiAnalysis.conflict ? 'text-danger' : 'text-success'} />
+                  <strong style={{ fontSize: '13px' }}>
+                    {activeRequestDetail.aiAnalysis.conflict
+                      ? 'AI Detected Corridor Conflict'
+                      : 'AI Operational Feasibility Check: Clear Corridor'}
+                  </strong>
+                  <span
+                    className={`alt-pill ${activeRequestDetail.aiAnalysis.conflict ? 'pill-alt' : 'pill-rec'}`}
+                    style={{ marginLeft: 'auto' }}
+                  >
+                    {activeRequestDetail.aiAnalysis.conflict ? 'Action Required' : 'Feasible'}
+                  </span>
+                </div>
+
+                {activeRequestDetail.aiAnalysis.conflict ? (
+                  <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div>
+                      <span className="text-muted">Conflicting Service: </span>
+                      <strong className="text-danger">{activeRequestDetail.aiAnalysis.conflictingTrain}</strong>
+                      {activeRequestDetail.aiAnalysis.collisionTime && (
+                        <span> at <strong className="text-danger">{activeRequestDetail.aiAnalysis.collisionTime} IST</strong></span>
+                      )}
+                    </div>
+                    {activeRequestDetail.aiAnalysis.recommendedWindow && (
+                      <div className="alt-timing-box" style={{ margin: '4px 0' }}>
+                        <Clock size={13} className="text-muted" />
+                        <span>Recommended Conflict-Free Window: </span>
+                        <strong>{activeRequestDetail.aiAnalysis.recommendedWindow.start} – {activeRequestDetail.aiAnalysis.recommendedWindow.end} IST</strong>
+                      </div>
+                    )}
+                    <p style={{ margin: '4px 0', color: 'var(--slate-600)', lineHeight: '1.4' }}>
+                      {activeRequestDetail.aiAnalysis.reasoning}
+                    </p>
+                    <small className="text-muted">{activeRequestDetail.aiAnalysis.priorityNote}</small>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <p style={{ margin: '4px 0', color: 'var(--slate-600)' }}>
+                      {activeRequestDetail.aiAnalysis.reasoning}
+                    </p>
+                    <small className="text-muted">{activeRequestDetail.aiAnalysis.priorityNote}</small>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="drawer-section-box">
               <h4>Historical Simulated Overrun Samples</h4>
               <p className="text-xs text-muted">
@@ -318,10 +396,10 @@ export const RequestsPage: React.FC = () => {
                 className="btn-secondary"
                 onClick={() => {
                   setSelectedSectionId(activeRequestDetail.sectionId);
-                  navigateTo('Block Planner');
+                  navigateTo('Conflicts');
                 }}
               >
-                Inspect in Gantt Timeline
+                View Conflicts Hub
               </button>
             </div>
           </div>

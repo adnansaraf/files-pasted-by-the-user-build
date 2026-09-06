@@ -155,6 +155,14 @@ export interface MaintenanceRequest {
   status: RequestStatus;
   coordinatedWith?: string[];
   submissionDate: string;
+  aiAnalysis?: {
+    conflict: boolean;
+    conflictingTrain: string | null;
+    collisionTime: string | null;
+    recommendedWindow: { start: string; end: string } | null;
+    reasoning: string;
+    priorityNote: string;
+  };
 }
 
 export interface TrainMovement {

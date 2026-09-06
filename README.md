@@ -104,6 +104,29 @@
 
 ---
 
+## 🔑 Environment Variables & AI Conflict Checking
+
+SolveX utilizes Google Gemini (`gemini-2.0-flash` or `gemini-1.5-flash`) via a Vercel Serverless Function (`/api/process-request`) to perform AI-powered conflict analysis against real Palakkad Division train timetable data.
+
+### Local Setup
+1. Create a `.env.local` file in the project root:
+   ```bash
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+2. Get your free Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+
+### Setting up in Vercel Dashboard (Required for Production)
+When deployed on Vercel, serverless functions read environment variables configured in your project settings:
+1. Open your project on the [Vercel Dashboard](https://vercel.com).
+2. Go to **Settings** ➔ **Environment Variables**.
+3. Add a new variable:
+   - **Key**: `GEMINI_API_KEY`
+   - **Value**: *(Paste your Google Gemini API key)*
+   - **Environments**: Select **Production**, **Preview**, and **Development**.
+4. Click **Save** and trigger a **Redeploy** (or push a commit) so the serverless function can access the key.
+
+---
+
 ## 📂 Project Architecture
 
 ```

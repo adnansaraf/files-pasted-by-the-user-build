@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Wrench, Shield, Clock, AlertCircle, Info, Sparkles, Plus } from 'lucide-react';
+import { X, Wrench, Shield, Clock, AlertCircle, Info, Sparkles, Plus, Loader2, TriangleAlert, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Department, PriorityLevel } from '../types';
 
@@ -7,7 +7,7 @@ export const RequestModal: React.FC = () => {
   const { isNewRequestModalOpen, setIsNewRequestModalOpen, addRequest, sections } = useApp();
 
   const [dept, setDept] = useState<Department>('Engineering');
-  const [sectionId, setSectionId] = useState<string>('A-B');
+  const [sectionId, setSectionId] = useState<string>('PGT-SRR');
   const [workType, setWorkType] = useState('');
   const [description, setDescription] = useState('');
   const [requestedDuration, setRequestedDuration] = useState<number>(2.5);
@@ -16,6 +16,8 @@ export const RequestModal: React.FC = () => {
   const [deadline, setDeadline] = useState('Tonight (Shift 3)');
   const [constraints, setConstraints] = useState('Requires power cut & traffic block');
   const [resources, setResources] = useState('1 JE/P-Way, 14 Track Maintainers');
+  const [isEvaluatingAI, setIsEvaluatingAI] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   if (!isNewRequestModalOpen) return null;
 
@@ -35,11 +37,45 @@ export const RequestModal: React.FC = () => {
   else if (priority === 'Medium') calculatedScore = 67;
   else calculatedScore = 48;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!workType) {
       alert('Please specify the work type');
       return;
+    }
+
+    setIsEvaluatingAI(true);
+    setAiError(null);
+
+    // Extract start time from preferredTimeWindow (e.g. "02:00–05:00" -> "02:00")
+    const startTimeMatch = preferredTimeWindow.match(/(\d{1,2}:\d{2})/);
+    const startTime = startTimeMatch ? startTimeMatch[1] : '02:00';
+
+    let aiResult = null;
+    try {
+      const response = await fetch('/api/process-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          section: sectionId,
+          startTime: startTime,
+          duration: requestedDuration,
+          priority: priority
+        })
+      });
+
+      if (response.ok) {
+        aiResult = await response.json();
+      } else {
+        console.warn('AI evaluation API returned status:', response.status);
+      }
+    } catch (err: any) {
+      console.error('Error contacting /api/process-request:', err);
+      setAiError(err.message || 'Failed to connect to AI conflict service');
+    } finally {
+      setIsEvaluatingAI(false);
     }
 
     addRequest({
@@ -52,7 +88,8 @@ export const RequestModal: React.FC = () => {
       priority,
       deadline,
       constraints,
-      resources
+      resources,
+      aiAnalysis: aiResult
     });
 
     setIsNewRequestModalOpen(false);
@@ -232,13 +269,23 @@ export const RequestModal: React.FC = () => {
             <button
               type="button"
               className="btn-secondary"
+              disabled={isEvaluatingAI}
               onClick={() => setIsNewRequestModalOpen(false)}
             >
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
-              <Plus size={16} />
-              <span>Submit to Planning Queue</span>
+            <button type="submit" className="btn-primary" disabled={isEvaluatingAI}>
+              {isEvaluatingAI ? (
+                <>
+                  <Loader2 size={16} className="spin" />
+                  <span>Checking Timetable & AI Conflicts...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles size={16} />
+                  <span>Submit & Check Conflicts</span>
+                </>
+              )}
             </button>
           </div>
         </form>

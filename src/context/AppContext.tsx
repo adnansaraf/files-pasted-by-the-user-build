@@ -139,6 +139,14 @@ interface AppContextType {
     deadline: string;
     constraints: string;
     resources: string;
+    aiAnalysis?: {
+      conflict: boolean;
+      conflictingTrain: string | null;
+      collisionTime: string | null;
+      recommendedWindow: { start: string; end: string } | null;
+      reasoning: string;
+      priorityNote: string;
+    };
   }) => void;
   
   reportDelay: (blockId: string, extraMinutes: number, reason: string) => void;
@@ -440,6 +448,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     deadline: string;
     constraints: string;
     resources: string;
+    aiAnalysis?: {
+      conflict: boolean;
+      conflictingTrain: string | null;
+      collisionTime: string | null;
+      recommendedWindow: { start: string; end: string } | null;
+      reasoning: string;
+      priorityNote: string;
+    };
   }) => {
     const sec = sections.find(s => s.id === newReqData.sectionId);
     const secName = sec ? `${sec.fromCode}–${sec.toCode} (${sec.fromName}–${sec.toName})` : newReqData.sectionId;
@@ -485,17 +501,63 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       constraints: newReqData.constraints,
       resources: newReqData.resources,
       status: 'Pending',
-      submissionDate: 'Just now'
+      submissionDate: 'Just now',
+      aiAnalysis: newReqData.aiAnalysis
     };
 
     setRequests(prev => [newReq, ...prev]);
+
+    // If AI conflict checking identified an operational conflict, register it in the Conflicts state
+    if (newReqData.aiAnalysis && newReqData.aiAnalysis.conflict) {
+      const trainName = newReqData.aiAnalysis.conflictingTrain || 'Scheduled Train Service';
+      const colTime = newReqData.aiAnalysis.collisionTime || newReqData.preferredTimeWindow.split('–')[0] || '02:00';
+      const recWindow = newReqData.aiAnalysis.recommendedWindow
+        ? `${newReqData.aiAnalysis.recommendedWindow.start}–${newReqData.aiAnalysis.recommendedWindow.end}`
+        : '03:30–05:30';
+
+      const newConflict: OperationalConflict = {
+        id: `CONF-AI-${Date.now().toString().slice(-4)}`,
+        severity: newReqData.priority === 'Critical' ? 'Critical' : newReqData.priority === 'High' ? 'High' : 'Medium',
+        sectionId: newReqData.sectionId,
+        sectionName: secName,
+        blockTime: newReqData.preferredTimeWindow,
+        conflictingTrain: {
+          trainNo: (trainName.match(/\d+/) || ['Special'])[0],
+          trainName: trainName.replace(/\s*\(\d+\)/, ''),
+          category: trainName.includes('SF') || trainName.includes('Superfast') ? 'Superfast Express' : 'Mail/Express',
+          sectionId: newReqData.sectionId,
+          entryTime: colTime,
+          exitTime: colTime,
+          priority: 1,
+          allowedDelayMin: 15
+        },
+        description: `AI Conflict Alert: Requested block overlaps with ${trainName} at ${colTime} IST (${newReqData.aiAnalysis.reasoning.slice(0, 100)}...)`,
+        conflictPointTime: colTime,
+        impactScore: newReqData.priority === 'Critical' ? 95 : 82,
+        status: 'Unresolved',
+        alternatives: [
+          {
+            optionId: `OPT-AI-${Date.now()}`,
+            label: `AI Recommended Window (${recWindow})`,
+            window: recWindow,
+            trainImpact: '0 min detention / Zero collision headway',
+            trainDelayMin: 0,
+            isRecommended: true,
+            reason: newReqData.aiAnalysis.reasoning
+          }
+        ]
+      };
+
+      setConflicts(prev => [newConflict, ...prev]);
+    }
+
     setNotifications(prev => [
       {
         id: `N-${Date.now()}`,
         title: `New Maintenance Request (${newId})`,
-        desc: `${newReq.dept} requested ${newReq.workType} on ${secName}`,
+        desc: `${newReq.dept} requested ${newReq.workType} on ${secName}${newReqData.aiAnalysis?.conflict ? ' [AI Conflict Flagged]' : ''}`,
         time: 'Just now',
-        type: 'info'
+        type: newReqData.aiAnalysis?.conflict ? 'critical' : 'info'
       },
       ...prev
     ]);
