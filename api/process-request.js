@@ -227,13 +227,12 @@ Return STRICT JSON only matching this exact schema:
   "priorityNote": string
 }`;
 
-        // Candidate models in preference order
+        // Candidate models in preference order (confirmed working on this API key)
         const candidateModels = [
-          'gemini-2.0-flash',
-          'gemini-2.0-flash-lite',
-          'gemini-2.5-flash',
-          'gemini-1.5-flash-8b',
-          'gemini-1.5-pro'
+          'gemini-3.6-flash',
+          'gemini-3.7-flash',
+          'gemini-3.8-flash',
+          'gemini-3.5-flash'
         ];
 
         let result = null;
