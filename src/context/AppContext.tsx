@@ -218,6 +218,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
            id.startsWith('req-1030') || id.startsWith('req-maq') || id.startsWith('req-tvc');
   };
 
+  const isSampleBlock = (b: { id?: string; workSummary?: string; notes?: string }) => {
+    const id = (b.id || '').toLowerCase();
+    const ws = (b.workSummary || '').toLowerCase();
+    const n = (b.notes || '').toLowerCase();
+    return (
+      id.startsWith('blk-pgt-20') ||
+      id.startsWith('blk-maq') ||
+      id.startsWith('blk-tvc') ||
+      id.startsWith('blk-pgt-0') ||
+      id.startsWith('blk-20') ||
+      id.includes('sample') ||
+      id.includes('test') ||
+      ws.includes('packing') ||
+      ws.includes('tamping') ||
+      ws.includes('cantilever') ||
+      ws.includes('axle counter') ||
+      ws.includes('sample') ||
+      n.includes('subgrade instability') ||
+      n.includes('sample')
+    );
+  };
+
   const [sections, setSections] = useState<RailwaySection[]>(SECTIONS);
   const [requests, setRequests] = useState<MaintenanceRequest[]>(() => {
     try {
@@ -235,14 +257,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     try {
       const saved = localStorage.getItem('solvex_blocks');
       if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+        const parsed: MaintenanceBlock[] = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(b => !isSampleBlock(b));
+          localStorage.setItem('solvex_blocks', JSON.stringify(clean));
+          return clean;
         }
       }
-      return INITIAL_BLOCKS;
+      return [];
     } catch {
-      return INITIAL_BLOCKS;
+      return [];
     }
   });
   const [conflicts, setConflicts] = useState<OperationalConflict[]>(() => {
@@ -408,10 +432,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
   }, [sections]);
 
+  // Purge sample blocks and sanitize localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('solvex_blocks');
+      if (saved) {
+        const parsed: MaintenanceBlock[] = JSON.parse(saved);
+        const clean = Array.isArray(parsed) ? parsed.filter(b => !isSampleBlock(b)) : [];
+        localStorage.setItem('solvex_blocks', JSON.stringify(clean));
+        setBlocks(clean);
+      }
+    } catch {
+      localStorage.removeItem('solvex_blocks');
+      setBlocks([]);
+    }
+  }, []);
+
   // Sync state changes to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('solvex_requests', JSON.stringify(requests));
+      const cleanReqs = requests.filter(r => !isSampleRequest(r));
+      localStorage.setItem('solvex_requests', JSON.stringify(cleanReqs));
     } catch (e) {
       console.warn('Failed to persist requests to localStorage', e);
     }
@@ -419,7 +460,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   useEffect(() => {
     try {
-      localStorage.setItem('solvex_blocks', JSON.stringify(blocks));
+      const cleanBlocks = blocks.filter(b => !isSampleBlock(b));
+      localStorage.setItem('solvex_blocks', JSON.stringify(cleanBlocks));
     } catch (e) {
       console.warn('Failed to persist blocks to localStorage', e);
     }
@@ -482,14 +524,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // Load work zones specific to this division
     const divisionWzs = MAINTENANCE_WORK_ZONES.filter(wz => wz.divisionId === selectedDivisionId);
     setWorkZones(divisionWzs);
-
-    // Ensure blocks for this division are populated if current blocks list is empty
-    setBlocks(prev => {
-      if (!prev || prev.length === 0) {
-        return getDivisionMockData(selectedDivisionId).blocks || INITIAL_BLOCKS;
-      }
-      return prev;
-    });
 
     // Reset drilldown level and active selections on division switch
     setSelectedDrillDownSectionId(null);
@@ -1036,7 +1070,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const resetAllDemoData = () => {
     setSections(SECTIONS);
     setRequests([]);
-    setBlocks(INITIAL_BLOCKS);
+    setBlocks([]);
     setConflicts([]);
     setOptimizationPlan(INITIAL_OPTIMIZATION_PLAN);
     setOverrunScenario(OVERRUN_SCENARIO_DATA);

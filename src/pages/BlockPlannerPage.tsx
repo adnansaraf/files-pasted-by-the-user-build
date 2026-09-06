@@ -18,7 +18,7 @@ import { GanttTimeline } from '../components/GanttTimeline';
 import { BlockDetailModal } from '../components/BlockDetailModal';
 
 export const BlockPlannerPage: React.FC = () => {
-  const { navigateTo, blocks, conflicts, setSelectedSectionId } = useApp();
+  const { navigateTo, blocks, conflicts, setSelectedSectionId, setInspectingBlock } = useApp();
   const [filterDept, setFilterDept] = useState<string>('');
   const [timeZoom, setTimeZoom] = useState<'24h' | '12h' | '6h'>('24h');
 
@@ -147,37 +147,25 @@ export const BlockPlannerPage: React.FC = () => {
       </div>
 
       {/* Quick Summary Cards below Gantt */}
-      <div className="planner-summary-grid">
-        <div className="summary-box">
-          <div className="summary-icon bg-maroon-subtle">
-            <Wrench size={18} className="text-maroon" />
-          </div>
-          <div>
-            <span className="summary-title">BLK-204 (PGT–OTP)</span>
-            <p>Active: Track tamping + OHE catenary overhaul (Delay reported to 04:45)</p>
-          </div>
+      {blocks.length === 0 ? (
+        <div style={{ padding: '16px 20px', background: 'var(--slate-900)', border: '1px solid var(--slate-800)', borderRadius: '10px', color: 'var(--slate-400)', fontSize: '13px', textAlign: 'center', fontStyle: 'italic', marginTop: '16px' }}>
+          No active or scheduled possession blocks in this corridor. Create a request or approve an AI-optimized plan to schedule possessions.
         </div>
-
-        <div className="summary-box">
-          <div className="summary-icon bg-green-subtle">
-            <CheckCircle2 size={18} className="text-success" />
-          </div>
-          <div>
-            <span className="summary-title">BLK-205 (SRR–TIR)</span>
-            <p>Active: 92% complete, Axle counter heads tested, line clearance in 15m</p>
-          </div>
+      ) : (
+        <div className="planner-summary-grid">
+          {blocks.map(b => (
+            <div key={b.id} className="summary-box" onClick={() => setInspectingBlock(b)} style={{ cursor: 'pointer' }}>
+              <div className={`summary-icon ${b.departments.includes('TRD') ? 'bg-amber-subtle text-amber' : b.departments.includes('S&T') ? 'bg-blue-subtle text-blue' : 'bg-maroon-subtle text-maroon'}`}>
+                {b.departments.includes('TRD') ? <Zap size={18} /> : b.departments.includes('S&T') ? <Radio size={18} /> : <Wrench size={18} />}
+              </div>
+              <div>
+                <span className="summary-title">{b.id} ({b.sectionId})</span>
+                <p>{b.status}: {b.workSummary} ({b.scheduledStart}–{b.expectedEnd || b.scheduledEnd})</p>
+              </div>
+            </div>
+          ))}
         </div>
-
-        <div className="summary-box">
-          <div className="summary-icon bg-blue-subtle">
-            <Clock size={18} className="text-blue" />
-          </div>
-          <div>
-            <span className="summary-title">BLK-206 (OTP–SRR)</span>
-            <p>Planned: 05:00–07:00 Rail weld renewal at km 562/14 following USFD flaw</p>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Block Detail Modal if inspecting */}
       <BlockDetailModal />

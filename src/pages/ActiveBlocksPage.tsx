@@ -186,11 +186,11 @@ export const ActiveBlocksPage: React.FC = () => {
                     </td>
                     <td className="text-right" onClick={e => e.stopPropagation()}>
                       <div className="btn-group-right">
-                        {b.id === 'BLK-204' && (
+                        {b.status === 'Active' && (
                           <button
                             className="btn-danger-xs"
                             onClick={() => {
-                              reportDelay(b.id, 45, 'Track tamping needs additional passes due to wet formation');
+                              reportDelay(b.id, 30, 'Track possession requires additional time due to field conditions');
                             }}
                           >
                             Report Delay

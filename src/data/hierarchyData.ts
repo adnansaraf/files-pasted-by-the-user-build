@@ -111,11 +111,11 @@ export const DIVISION_NETWORKS: Record<string, DivisionMacroNetwork> = {
     ],
     sections: [
       { id: 'PTJ-PGT', fromCode: 'PTJ', toCode: 'PGT', fromName: 'Podanur Jn', toName: 'Palakkad Jn', lengthKm: 54, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Available', divisionId: 'PGT' },
-      { id: 'PGT-SRR', fromCode: 'PGT', toCode: 'SRR', fromName: 'Palakkad Jn', toName: 'Shoranur Jn', lengthKm: 46, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Maintenance Planned', plannedBlockIds: ['BLK-PGT-01'], currentSpeedRestriction: '45 km/h at km 528/4-8', divisionId: 'PGT' },
-      { id: 'SRR-CLT', fromCode: 'SRR', toCode: 'CLT', fromName: 'Shoranur Jn', toName: 'Kozhikode', lengthKm: 86, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Active Block', activeBlockId: 'BLK-PGT-02', divisionId: 'PGT' },
-      { id: 'CLT-CAN', fromCode: 'CLT', toCode: 'CAN', fromName: 'Kozhikode', toName: 'Kannur', lengthKm: 89, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Conflict', plannedBlockIds: ['BLK-PGT-03'], divisionId: 'PGT' },
+      { id: 'PGT-SRR', fromCode: 'PGT', toCode: 'SRR', fromName: 'Palakkad Jn', toName: 'Shoranur Jn', lengthKm: 46, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Available', divisionId: 'PGT' },
+      { id: 'SRR-CLT', fromCode: 'SRR', toCode: 'CLT', fromName: 'Shoranur Jn', toName: 'Kozhikode', lengthKm: 86, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Available', divisionId: 'PGT' },
+      { id: 'CLT-CAN', fromCode: 'CLT', toCode: 'CAN', fromName: 'Kozhikode', toName: 'Kannur', lengthKm: 89, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Available', divisionId: 'PGT' },
       { id: 'CAN-MAQ', fromCode: 'CAN', toCode: 'MAQ', fromName: 'Kannur', toName: 'Mangaluru Central', lengthKm: 132, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Available', divisionId: 'PGT' },
-      { id: 'SRR-NIL', fromCode: 'SRR', toCode: 'NIL', fromName: 'Shoranur Jn', toName: 'Nilambur Road', lengthKm: 66, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 85, status: 'Speed Restriction', currentSpeedRestriction: '30 km/h forest curves', divisionId: 'PGT' },
+      { id: 'SRR-NIL', fromCode: 'SRR', toCode: 'NIL', fromName: 'Shoranur Jn', toName: 'Nilambur Road', lengthKm: 66, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 85, status: 'Available', divisionId: 'PGT' },
       { id: 'PGT-PGTN', fromCode: 'PGT', toCode: 'PGTN', fromName: 'Palakkad Jn', toName: 'Palakkad Town', lengthKm: 4, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 60, status: 'Available', divisionId: 'PGT' },
       { id: 'PGTN-POY', fromCode: 'PGTN', toCode: 'POY', fromName: 'Palakkad Town', toName: 'Pollachi Jn', lengthKm: 50, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 90, status: 'Available', divisionId: 'PGT' }
     ]
@@ -150,13 +150,13 @@ export const DIVISION_NETWORKS: Record<string, DivisionMacroNetwork> = {
     ],
     sections: [
       { id: 'MAQ-MAJN', fromCode: 'MAQ', toCode: 'MAJN', fromName: 'Mangaluru Central', toName: 'Mangaluru Jn', lengthKm: 6, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 80, status: 'Available', divisionId: 'MAQ' },
-      { id: 'MAJN-TOK', fromCode: 'MAJN', toCode: 'TOK', fromName: 'Mangaluru Jn', toName: 'Thokur', lengthKm: 16, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 100, status: 'Maintenance Planned', plannedBlockIds: ['BLK-MAQ-01'], divisionId: 'MAQ' },
+      { id: 'MAJN-TOK', fromCode: 'MAJN', toCode: 'TOK', fromName: 'Mangaluru Jn', toName: 'Thokur', lengthKm: 16, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 100, status: 'Available', divisionId: 'MAQ' },
       { id: 'TOK-SL', fromCode: 'TOK', toCode: 'SL', fromName: 'Thokur', toName: 'Surathkal', lengthKm: 6, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 100, status: 'Available', divisionId: 'MAQ' },
-      { id: 'SL-UD', fromCode: 'SL', toCode: 'UD', fromName: 'Surathkal', toName: 'Udupi', lengthKm: 40, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 110, status: 'Active Block', activeBlockId: 'BLK-MAQ-02', divisionId: 'MAQ' },
-      { id: 'UD-KUDA', fromCode: 'UD', toCode: 'KUDA', fromName: 'Udupi', toName: 'Kundapura', lengthKm: 32, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 110, status: 'Conflict', divisionId: 'MAQ' },
+      { id: 'SL-UD', fromCode: 'SL', toCode: 'UD', fromName: 'Surathkal', toName: 'Udupi', lengthKm: 40, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 110, status: 'Available', divisionId: 'MAQ' },
+      { id: 'UD-KUDA', fromCode: 'UD', toCode: 'KUDA', fromName: 'Udupi', toName: 'Kundapura', lengthKm: 32, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 110, status: 'Available', divisionId: 'MAQ' },
       { id: 'KUDA-BYNR', fromCode: 'KUDA', toCode: 'BYNR', fromName: 'Kundapura', toName: 'Byndoor', lengthKm: 34, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 110, status: 'Available', divisionId: 'MAQ' },
       { id: 'BYNR-BTJL', fromCode: 'BYNR', toCode: 'BTJL', fromName: 'Byndoor', toName: 'Bhatkal', lengthKm: 15, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 100, status: 'Available', divisionId: 'MAQ' },
-      { id: 'MAJN-PNMB', fromCode: 'MAJN', toCode: 'PNMB', fromName: 'Mangaluru Jn', toName: 'Panambur', lengthKm: 18, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 60, status: 'Speed Restriction', currentSpeedRestriction: '20 km/h port siding curve', divisionId: 'MAQ' },
+      { id: 'MAJN-PNMB', fromCode: 'MAJN', toCode: 'PNMB', fromName: 'Mangaluru Jn', toName: 'Panambur', lengthKm: 18, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 60, status: 'Available', divisionId: 'MAQ' },
       { id: 'MAJN-SBHR', fromCode: 'MAJN', toCode: 'SBHR', fromName: 'Mangaluru Jn', toName: 'Subrahmanya Road', lengthKm: 86, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 80, status: 'Available', divisionId: 'MAQ' }
     ]
   },
@@ -186,13 +186,13 @@ export const DIVISION_NETWORKS: Record<string, DivisionMacroNetwork> = {
       { id: 'TVC-NCJ', from: 'TVC', to: 'NCJ', x1: 1470, y1: 170, x2: 1720, y2: 220, name: 'Thiruvananthapuram – Nagercoil Section', labelX: 1600, labelY: 182, branchType: 'main' }
     ],
     sections: [
-      { id: 'ERS-KTYM', fromCode: 'ERS', toCode: 'KTYM', fromName: 'Ernakulam Jn', toName: 'Kottayam', lengthKm: 60, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 105, status: 'Active Block', activeBlockId: 'BLK-TVC-01', divisionId: 'TVC' },
-      { id: 'KTYM-KYJ', fromCode: 'KTYM', toCode: 'KYJ', fromName: 'Kottayam', toName: 'Kayamkulam Jn', lengthKm: 55, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Maintenance Planned', plannedBlockIds: ['BLK-TVC-02'], divisionId: 'TVC' },
+      { id: 'ERS-KTYM', fromCode: 'ERS', toCode: 'KTYM', fromName: 'Ernakulam Jn', toName: 'Kottayam', lengthKm: 60, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 105, status: 'Available', divisionId: 'TVC' },
+      { id: 'KTYM-KYJ', fromCode: 'KTYM', toCode: 'KYJ', fromName: 'Kottayam', toName: 'Kayamkulam Jn', lengthKm: 55, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Available', divisionId: 'TVC' },
       { id: 'ERS-ALLP', fromCode: 'ERS', toCode: 'ALLP', fromName: 'Ernakulam Jn', toName: 'Alappuzha', lengthKm: 57, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 100, status: 'Available', divisionId: 'TVC' },
       { id: 'ALLP-KYJ', fromCode: 'ALLP', toCode: 'KYJ', fromName: 'Alappuzha', toName: 'Kayamkulam Jn', lengthKm: 44, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 105, status: 'Available', divisionId: 'TVC' },
-      { id: 'KYJ-QLN', fromCode: 'KYJ', toCode: 'QLN', fromName: 'Kayamkulam Jn', toName: 'Kollam Jn', lengthKm: 41, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Conflict', divisionId: 'TVC' },
-      { id: 'QLN-TVC', fromCode: 'QLN', toCode: 'TVC', fromName: 'Kollam Jn', toName: 'Thiruvananthapuram Central', lengthKm: 65, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 100, status: 'Active Block', activeBlockId: 'BLK-TVC-03', divisionId: 'TVC' },
-      { id: 'TVC-NCJ', fromCode: 'TVC', toCode: 'NCJ', fromName: 'Thiruvananthapuram Central', toName: 'Nagercoil Jn', lengthKm: 71, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 90, status: 'Speed Restriction', currentSpeedRestriction: '40 km/h bridge work', divisionId: 'TVC' }
+      { id: 'KYJ-QLN', fromCode: 'KYJ', toCode: 'QLN', fromName: 'Kayamkulam Jn', toName: 'Kollam Jn', lengthKm: 41, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 110, status: 'Available', divisionId: 'TVC' },
+      { id: 'QLN-TVC', fromCode: 'QLN', toCode: 'TVC', fromName: 'Kollam Jn', toName: 'Thiruvananthapuram Central', lengthKm: 65, tracks: 'Double Line', traction: '25 kV AC Electrified', mps: 100, status: 'Available', divisionId: 'TVC' },
+      { id: 'TVC-NCJ', fromCode: 'TVC', toCode: 'NCJ', fromName: 'Thiruvananthapuram Central', toName: 'Nagercoil Jn', lengthKm: 71, tracks: 'Single Line', traction: '25 kV AC Electrified', mps: 90, status: 'Available', divisionId: 'TVC' }
     ]
   }
 };

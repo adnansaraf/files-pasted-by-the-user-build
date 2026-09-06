@@ -99,17 +99,40 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
            id.startsWith('req-1030');
   };
 
+  const isSampleBlock = (b: { id?: string; workSummary?: string; notes?: string }) => {
+    const id = (b.id || '').toLowerCase();
+    const ws = (b.workSummary || '').toLowerCase();
+    const n = (b.notes || '').toLowerCase();
+    return (
+      id.startsWith('blk-pgt-20') ||
+      id.startsWith('blk-maq') ||
+      id.startsWith('blk-tvc') ||
+      id.startsWith('blk-pgt-0') ||
+      id.startsWith('blk-20') ||
+      id.includes('sample') ||
+      id.includes('test') ||
+      ws.includes('packing') ||
+      ws.includes('tamping') ||
+      ws.includes('cantilever') ||
+      ws.includes('axle counter') ||
+      ws.includes('sample') ||
+      n.includes('subgrade instability') ||
+      n.includes('sample')
+    );
+  };
+
   // Filter blocks and requests by department
   const validRequests = requests.filter(r => !isSample(r));
-  const engBlocks = blocks.filter(b => b.departments.includes('Engineering'));
+  const validBlocks = blocks.filter(b => !isSampleBlock(b));
+  const engBlocks = validBlocks.filter(b => b.departments.includes('Engineering'));
   const engRequests = validRequests.filter(r => r.dept === 'Engineering');
   const hasEng = engBlocks.length > 0 || engRequests.length > 0;
 
-  const trdBlocks = blocks.filter(b => b.departments.includes('TRD'));
+  const trdBlocks = validBlocks.filter(b => b.departments.includes('TRD'));
   const trdRequests = validRequests.filter(r => r.dept === 'TRD');
   const hasTrd = trdBlocks.length > 0 || trdRequests.length > 0;
 
-  const stBlocks = blocks.filter(b => b.departments.includes('S&T'));
+  const stBlocks = validBlocks.filter(b => b.departments.includes('S&T'));
   const stRequests = validRequests.filter(r => r.dept === 'S&T');
   const hasSt = stBlocks.length > 0 || stRequests.length > 0;
 

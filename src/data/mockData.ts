@@ -30,9 +30,7 @@ export const SECTIONS: RailwaySection[] = [
     tracks: 'Double Line',
     traction: '25 kV AC Electrified',
     mps: 110,
-    status: 'Maintenance Planned',
-    plannedBlockIds: ['BLK-PGT-204'],
-    currentSpeedRestriction: '45 km/h at km 532/4-8'
+    status: 'Available'
   },
   {
     id: 'SRR-CLT',
@@ -44,8 +42,7 @@ export const SECTIONS: RailwaySection[] = [
     tracks: 'Double Line',
     traction: '25 kV AC Electrified',
     mps: 110,
-    status: 'Active Block',
-    activeBlockId: 'BLK-PGT-205'
+    status: 'Available'
   },
   {
     id: 'CLT-CAN',
@@ -57,8 +54,7 @@ export const SECTIONS: RailwaySection[] = [
     tracks: 'Double Line',
     traction: '25 kV AC Electrified',
     mps: 110,
-    status: 'Conflict',
-    plannedBlockIds: ['BLK-PGT-206']
+    status: 'Available'
   },
   {
     id: 'CAN-MAQ',
@@ -67,6 +63,18 @@ export const SECTIONS: RailwaySection[] = [
     fromName: 'Kannur',
     toName: 'Mangaluru Central',
     lengthKm: 138,
+    tracks: 'Double Line',
+    traction: '25 kV AC Electrified',
+    mps: 110,
+    status: 'Available'
+  },
+  {
+    id: 'SRR-PGT',
+    fromCode: 'SRR',
+    toCode: 'PGT',
+    fromName: 'Shoranur Jn',
+    toName: 'Palakkad Jn',
+    lengthKm: 44,
     tracks: 'Double Line',
     traction: '25 kV AC Electrified',
     mps: 110,
@@ -82,18 +90,30 @@ export const SECTIONS: RailwaySection[] = [
     tracks: 'Single Line',
     traction: 'Non-Electrified',
     mps: 75,
-    status: 'Maintenance Planned'
+    status: 'Available'
   },
   {
-    id: 'PTJ-PGT',
-    fromCode: 'PTJ',
-    toCode: 'PGT',
-    fromName: 'Podanur Jn',
-    toName: 'Palakkad Jn',
-    lengthKm: 52,
-    tracks: 'Double Line',
+    id: 'PGT-PGTN',
+    fromCode: 'PGT',
+    toCode: 'PGTN',
+    fromName: 'Palakkad Jn',
+    toName: 'Palakkad Town',
+    lengthKm: 4,
+    tracks: 'Single Line',
     traction: '25 kV AC Electrified',
-    mps: 110,
+    mps: 60,
+    status: 'Available'
+  },
+  {
+    id: 'PGTN-POY',
+    fromCode: 'PGTN',
+    toCode: 'POY',
+    fromName: 'Palakkad Town',
+    toName: 'Pollachi Jn',
+    lengthKm: 50,
+    tracks: 'Single Line',
+    traction: '25 kV AC Electrified',
+    mps: 90,
     status: 'Available'
   }
 ];
@@ -115,66 +135,54 @@ export const PGT_TRAINS: TrainMovement[] = [
     entryTime: '00:50',
     exitTime: '01:40',
     priority: 1,
-    allowedDelayMin: 15
+    allowedDelayMin: 5
   },
   {
-    trainNo: '12626',
-    trainName: 'Kerala Superfast Express',
-    category: 'Superfast Express',
-    sectionId: 'PGT-SRR',
-    fromStation: 'Palakkad Jn (PGT)',
-    toStation: 'Shoranur Jn (SRR)',
-    entryTime: '01:25',
-    exitTime: '01:48',
-    priority: 2,
-    allowedDelayMin: 15
-  },
-  {
-    trainNo: '16347',
-    trainName: 'Mangalore Express',
+    trainNo: '12601',
+    trainName: 'MAS MAQ SF MAIL',
     category: 'Mail/Express',
-    sectionId: 'SRR-CLT',
-    fromStation: 'Shoranur Jn (SRR)',
-    toStation: 'Kozhikode (CLT)',
-    entryTime: '02:10',
-    exitTime: '02:45',
-    priority: 3,
-    allowedDelayMin: 25
-  },
-  {
-    trainNo: 'BOXN-4022',
-    trainName: 'Cochin Port Container Rake',
-    category: 'Freight',
-    sectionId: 'PTJ-PGT',
-    fromStation: 'Podanur Jn (PTJ)',
-    toStation: 'Palakkad Jn (PGT)',
-    entryTime: '02:40',
-    exitTime: '03:15',
-    priority: 4,
-    allowedDelayMin: 60
-  },
-  {
-    trainNo: '12617',
-    trainName: 'Mangala Lakshadweep Superfast',
-    category: 'Superfast Express',
     sectionId: 'PGT-SRR',
     fromStation: 'Palakkad Jn (PGT)',
     toStation: 'Shoranur Jn (SRR)',
-    entryTime: '03:15',
-    exitTime: '03:38',
-    priority: 2,
-    allowedDelayMin: 15
+    entryTime: '04:35',
+    exitTime: '05:30',
+    priority: 1,
+    allowedDelayMin: 5
   },
   {
-    trainNo: '12686',
-    trainName: 'Mangaluru–Chennai Superfast',
+    trainNo: '22610',
+    trainName: 'INTERCITY SF EX',
     category: 'Superfast Express',
     sectionId: 'PGT-SRR',
-    fromStation: 'Palakkad Jn (PGT)',
-    toStation: 'Podanur Jn (PTJ)',
-    entryTime: '04:10',
-    exitTime: '04:24',
+    fromStation: 'Shoranur Jn (SRR)',
+    toStation: 'Tirur (TIR)',
+    entryTime: '07:05',
+    exitTime: '07:50',
     priority: 2,
+    allowedDelayMin: 10
+  },
+  {
+    trainNo: '16349',
+    trainName: 'RAJYA RANI EXP',
+    category: 'Mail/Express',
+    sectionId: 'PGT-SRR',
+    fromStation: 'Palakkad Jn (PGT)',
+    toStation: 'Shoranur Jn (SRR)',
+    entryTime: '03:10',
+    exitTime: '03:45',
+    priority: 2,
+    allowedDelayMin: 10
+  },
+  {
+    trainNo: '16326',
+    trainName: 'KTYM NIL EXP',
+    category: 'Mail/Express',
+    sectionId: 'SRR-NIL',
+    fromStation: 'Shoranur Jn (SRR)',
+    toStation: 'Nilambur Road (NIL)',
+    entryTime: '08:00',
+    exitTime: '09:20',
+    priority: 3,
     allowedDelayMin: 15
   },
   {
@@ -184,122 +192,14 @@ export const PGT_TRAINS: TrainMovement[] = [
     sectionId: 'PGT-SRR',
     fromStation: 'Palakkad Jn (PGT)',
     toStation: 'Shoranur Jn (SRR)',
-    entryTime: '05:30',
-    exitTime: '06:05',
+    entryTime: '01:10',
+    exitTime: '02:00',
     priority: 4,
-    allowedDelayMin: 45
-  },
-  {
-    trainNo: '06797',
-    trainName: 'Palakkad–Ernakulam MEMU',
-    category: 'MEMU Passenger',
-    sectionId: 'PGT-SRR',
-    fromStation: 'Palakkad Jn (PGT)',
-    toStation: 'Ottappalam (OTP)',
-    entryTime: '06:20',
-    exitTime: '06:48',
-    priority: 4,
-    allowedDelayMin: 20
-  },
-  {
-    trainNo: '20631',
-    trainName: 'Kasaragod–TVC Vande Bharat',
-    category: 'Vande Bharat',
-    sectionId: 'CLT-CAN',
-    fromStation: 'Kozhikode (CLT)',
-    toStation: 'Kannur (CAN)',
-    entryTime: '07:22',
-    exitTime: '07:44',
-    priority: 1,
-    allowedDelayMin: 5
-  },
-  {
-    trainNo: '22610',
-    trainName: 'Intercity Superfast Express',
-    category: 'Superfast Intercity',
-    sectionId: 'SRR-TIR',
-    fromStation: 'Shoranur Jn (SRR)',
-    toStation: 'Tirur (TIR)',
-    entryTime: '08:15',
-    exitTime: '08:45',
-    priority: 2,
-    allowedDelayMin: 15
-  },
-  {
-    trainNo: '22476',
-    trainName: 'CBE HSR AC Superfast',
-    category: 'Superfast Express',
-    sectionId: 'PGT-SRR',
-    fromStation: 'Palakkad Jn (PGT)',
-    toStation: 'Shoranur Jn (SRR)',
-    entryTime: '14:30',
-    exitTime: '14:55',
-    priority: 2,
-    allowedDelayMin: 15
+    allowedDelayMin: 60
   }
 ];
 
-export const PGT_BLOCKS: MaintenanceBlock[] = [
-  {
-    id: 'BLK-PGT-204',
-    sectionId: 'PGT-SRR',
-    sectionName: 'PGT–SRR (Palakkad–Shoranur)',
-    departments: ['Engineering', 'TRD'],
-    requestIds: [],
-    workSummary: 'Track geometry tamping + OHE catenary dropper overhaul (Parli–Mankara)',
-    scheduledStart: '02:00',
-    scheduledEnd: '04:00',
-    actualStart: '02:05',
-    expectedEnd: '04:45', // Overrun
-    durationHours: 2.67,
-    progressPercent: 78,
-    status: 'Active',
-    priority: 'High',
-    affectedTrains: ['12617 Mangala Exp (at 03:15)'],
-    crewAssigned: '24 Staff (Plasser crew + PGT TRD team)',
-    overheadPowerCutRequired: true,
-    speedRestrictionImposed: '45 km/h temporary caution order',
-    notes: 'Ballast consolidation took longer than expected due to wet formation near km 532.'
-  },
-  {
-    id: 'BLK-PGT-205',
-    sectionId: 'SRR-CLT',
-    sectionName: 'SRR–CLT (Shoranur–Kozhikode)',
-    departments: ['S&T'],
-    requestIds: [],
-    workSummary: 'Axle counter heads replacement & cable insulation test (Kuttippuram–Tirur)',
-    scheduledStart: '01:30',
-    scheduledEnd: '03:30',
-    actualStart: '01:30',
-    expectedEnd: '03:30',
-    durationHours: 2.0,
-    progressPercent: 92,
-    status: 'Active',
-    priority: 'High',
-    affectedTrains: ['16347 Mangalore Exp'],
-    crewAssigned: '6 Staff (SSE/Sig Tirur)',
-    overheadPowerCutRequired: false,
-    notes: 'Work finishing ahead of schedule. Track clearance expected in 15 minutes.'
-  },
-  {
-    id: 'BLK-PGT-206',
-    sectionId: 'CLT-CAN',
-    sectionName: 'CLT–CAN (Kozhikode–Kannur)',
-    departments: ['Engineering'],
-    requestIds: [],
-    workSummary: 'AFTC calibration and signal testing near Vadakara',
-    scheduledStart: '05:00',
-    scheduledEnd: '07:00',
-    expectedEnd: '07:00',
-    durationHours: 2.0,
-    progressPercent: 0,
-    status: 'Planned',
-    priority: 'Medium',
-    affectedTrains: ['20631 Vande Bharat Express'],
-    crewAssigned: '10 Technicians (PWI BDJ)',
-    overheadPowerCutRequired: false
-  }
-];
+export const PGT_BLOCKS: MaintenanceBlock[] = [];
 
 export const PGT_CONFLICTS: OperationalConflict[] = [];
 
@@ -495,46 +395,7 @@ export const MAQ_TRAINS: TrainMovement[] = [
   }
 ];
 
-export const MAQ_BLOCKS: MaintenanceBlock[] = [
-  {
-    id: 'BLK-MAQ-201',
-    sectionId: 'SL-UD',
-    sectionName: 'SL–UD (Surathkal–Udupi)',
-    departments: ['Engineering', 'TRD'],
-    requestIds: [],
-    workSummary: 'Track packing & joint sleeper replacement near Nandikoor',
-    scheduledStart: '02:00',
-    scheduledEnd: '04:30',
-    actualStart: '02:00',
-    expectedEnd: '04:30',
-    durationHours: 2.5,
-    progressPercent: 65,
-    status: 'Active',
-    priority: 'High',
-    affectedTrains: ['12134 CSMT Express'],
-    crewAssigned: '18 Staff (PWI Surathkal + TRD crew)',
-    overheadPowerCutRequired: true,
-    speedRestrictionImposed: '30 km/h pilot track'
-  },
-  {
-    id: 'BLK-MAQ-202',
-    sectionId: 'MAJN-PNMB',
-    sectionName: 'MAJN–PNMB (Mangaluru Jn–Panambur)',
-    departments: ['Operating'],
-    requestIds: [],
-    workSummary: 'Port siding point calibration and circuit overhaul',
-    scheduledStart: '05:00',
-    scheduledEnd: '06:30',
-    expectedEnd: '06:30',
-    durationHours: 1.5,
-    progressPercent: 0,
-    status: 'Planned',
-    priority: 'Medium',
-    affectedTrains: ['NMPT-882 Port Coal Rake'],
-    crewAssigned: '6 Staff',
-    overheadPowerCutRequired: false
-  }
-];
+export const MAQ_BLOCKS: MaintenanceBlock[] = [];
 
 export const MAQ_CONFLICTS: OperationalConflict[] = [];
 
@@ -655,46 +516,7 @@ export const TVC_TRAINS: TrainMovement[] = [
   }
 ];
 
-export const TVC_BLOCKS: MaintenanceBlock[] = [
-  {
-    id: 'BLK-TVC-301',
-    sectionId: 'KYJ-QLN',
-    sectionName: 'KYJ–QLN (Kayamkulam–Kollam)',
-    departments: ['Engineering', 'TRD'],
-    requestIds: [],
-    workSummary: 'Track geometry tamping on UP line (Ochira–Sasthankotta)',
-    scheduledStart: '02:00',
-    scheduledEnd: '04:30',
-    actualStart: '02:00',
-    expectedEnd: '04:30',
-    durationHours: 2.5,
-    progressPercent: 70,
-    status: 'Active',
-    priority: 'Critical',
-    affectedTrains: ['16346 Netravati Express'],
-    crewAssigned: '16 Staff (PWI Kollam)',
-    overheadPowerCutRequired: false,
-    speedRestrictionImposed: '45 km/h caution order'
-  },
-  {
-    id: 'BLK-TVC-302',
-    sectionId: 'QLN-TVC',
-    sectionName: 'QLN–TVC (Kollam–Thiruvananthapuram)',
-    departments: ['TRD'],
-    requestIds: [],
-    workSummary: 'OHE cantilever replacement near Varkala Sivagiri',
-    scheduledStart: '01:30',
-    scheduledEnd: '03:30',
-    expectedEnd: '03:30',
-    durationHours: 2.0,
-    progressPercent: 0,
-    status: 'Planned',
-    priority: 'High',
-    affectedTrains: ['12624 Chennai Mail'],
-    crewAssigned: '8 Staff (SSE/TRD TVC)',
-    overheadPowerCutRequired: true
-  }
-];
+export const TVC_BLOCKS: MaintenanceBlock[] = [];
 
 export const TVC_CONFLICTS: OperationalConflict[] = [];
 
