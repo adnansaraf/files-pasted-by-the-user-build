@@ -14,9 +14,11 @@ import {
   ChevronRight,
   Info,
   Layers,
-  Plus
+  Plus,
+  Edit3
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { evaluateCustomWindow } from '../data/evaluateWindow';
 
 export const OptimizerPage: React.FC = () => {
   const {
@@ -31,14 +33,12 @@ export const OptimizerPage: React.FC = () => {
 
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [showModifyWeights, setShowModifyWeights] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<'recommended' | 'original' | 'manual'>('recommended');
+  const [manualStartTime, setManualStartTime] = useState<string>('02:30');
+  const [manualDuration, setManualDuration] = useState<number>(2.5);
 
   // Determine current request: selected or most recent (first in array)
   const currentRequest = requests.find(r => r.id === selectedRequestId) || requests[0] || null;
-
-  const handleApprove = () => {
-    approvePlan();
-    navigateTo('Plan Review');
-  };
 
   // If zero requests, display honest empty state
   if (!currentRequest) {
@@ -184,6 +184,64 @@ export const OptimizerPage: React.FC = () => {
   } else {
     reasons.push(`Preserves 100% timetable punctuality with 0 minutes train detention.`);
   }
+
+  // Live timetable evaluation for custom manual window
+  const manualEvaluation = evaluateCustomWindow(
+    currentRequest.sectionId,
+    manualStartTime,
+    manualDuration
+  );
+
+  const handleApprove = (optionType: 'recommended' | 'original' | 'manual' = selectedOption) => {
+    let start = '02:00';
+    let end = '04:00';
+    let planType = 'AI Recommended Corridor';
+    let planScore = score;
+    let planReasons = reasons;
+
+    if (optionType === 'recommended') {
+      const [s, e] = (hasConflict ? recommendedWindow : currentRequest.preferredTimeWindow)
+        .split(/[–\-]/).map(t => t.trim());
+      start = s || '02:00';
+      end = e || '04:00';
+      planType = hasConflict ? 'AI Recommended Night Clearance' : 'Direct Requested Possession';
+      planScore = score;
+      planReasons = reasons;
+    } else if (optionType === 'original') {
+      const [s, e] = currentRequest.preferredTimeWindow.split(/[–\-]/).map(t => t.trim());
+      start = s || '01:30';
+      end = e || '04:00';
+      planType = hasConflict ? 'Original Window (Traffic Override Under Caution)' : 'Original Requested Slot (Clear)';
+      planScore = hasConflict ? 52 : 95;
+      planReasons = hasConflict ? [
+        `Controller authorized block on requested slot despite proximity to ${conflictingTrain || 'scheduled service'}.`,
+        `45 km/h Caution Order & speed restriction imposed on section ${currentRequest.sectionName}.`,
+        `Loop line holding arranged at adjacent stations.`
+      ] : [
+        `Original requested slot confirmed clear of train traffic on section ${currentRequest.sectionName}.`,
+        `Zero passenger or freight train delays.`
+      ];
+    } else if (optionType === 'manual') {
+      start = manualStartTime;
+      end = manualEvaluation.endTime;
+      planType = 'Manual Controller Slot (Interactive Timetable Override)';
+      planScore = manualEvaluation.score;
+      planReasons = [
+        ...manualEvaluation.tradeoffs,
+        `Manual window configured by Sectional Controller: ${manualStartTime}–${manualEvaluation.endTime} (${manualDuration} hours).`,
+        `Live validated against Southern Railway Palakkad Division timetable movements.`
+      ];
+    }
+
+    approvePlan({
+      start,
+      end,
+      planType,
+      score: planScore,
+      reasons: planReasons
+    });
+    navigateTo('Plan Review');
+  };
 
   return (
     <div className="page-container">
@@ -421,18 +479,28 @@ export const OptimizerPage: React.FC = () => {
 
         {/* Alternatives Comparison Matrix */}
         <div className="alternatives-section">
-          <h3 className="section-heading">Operational Alternatives Comparison</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <h3 className="section-heading" style={{ margin: 0 }}>Operational Alternatives Comparison</h3>
+            <span style={{ fontSize: '12px', color: 'var(--slate-500)' }}>
+              Select AI Recommendation, Original Slot, or configure a Custom Manual Window
+            </span>
+          </div>
+
           <div className="alternatives-grid">
             {/* Option 1: Recommended */}
-            <div className="alternative-card card-recommended">
+            <div
+              className={`alternative-card card-recommended ${selectedOption === 'recommended' ? 'card-selected' : ''}`}
+              onClick={() => setSelectedOption('recommended')}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="alt-head">
                 <div>
                   <span className="alt-pill pill-rec">
-                    {hasConflict ? 'Recommended Option (AI Optimized)' : 'Recommended (Requested Window Clear)'}
+                    {hasConflict ? 'Option 1: Recommended (AI Optimized)' : 'Option 1: Recommended (Window Clear)'}
                   </span>
                   <h4 className="alt-title">{hasConflict ? 'Optimal Night Clearance Window' : 'Direct Requested Possession'}</h4>
                 </div>
-                <div className="alt-score-circle">
+                <div className="alt-score-circle" style={{ background: '#ecfdf5', color: '#065f46', borderColor: '#a7f3d0' }}>
                   <strong>{score}</strong>
                 </div>
               </div>
@@ -483,30 +551,41 @@ export const OptimizerPage: React.FC = () => {
 
               <button
                 className="btn-primary-block"
-                onClick={handleApprove}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedOption('recommended');
+                  handleApprove('recommended');
+                }}
               >
                 <Check size={16} />
-                <span>Approve & Sign Off Plan</span>
+                <span>Approve AI Plan</span>
               </button>
             </div>
 
-            {/* Option 2: Alternative or Clashing Baseline */}
-            <div className="alternative-card">
+            {/* Option 2: Original Window (Clashing Baseline or Requested Slot) */}
+            <div
+              className={`alternative-card ${selectedOption === 'original' ? 'card-selected' : ''}`}
+              onClick={() => setSelectedOption('original')}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="alt-head">
                 <div>
                   <span className={`alt-pill ${hasConflict ? 'text-danger' : 'pill-alt'}`}>
-                    {hasConflict ? 'Original Window (Clashing Baseline)' : 'Alternative Shift Option'}
+                    {hasConflict ? 'Option 2: Original Window (Clashing Baseline)' : 'Option 2: Original Requested Slot'}
                   </span>
-                  <h4 className="alt-title">{hasConflict ? 'Unmodified Requested Slot' : 'Later Night Slot'}</h4>
+                  <h4 className="alt-title">{hasConflict ? 'Unmodified Requested Slot' : 'Standard Requested Window'}</h4>
                 </div>
-                <div className="alt-score-circle">
-                  <strong>{hasConflict ? 52 : 82}</strong>
+                <div
+                  className="alt-score-circle"
+                  style={hasConflict ? { background: '#fef2f2', color: '#991b1b', borderColor: '#fecaca' } : {}}
+                >
+                  <strong>{hasConflict ? 52 : 95}</strong>
                 </div>
               </div>
 
               <div className="alt-timing-box">
                 <Clock size={14} className="text-muted" />
-                <strong>Time Window: {hasConflict ? currentRequest.preferredTimeWindow : '04:00–06:00'}</strong>
+                <strong>Time Window: {currentRequest.preferredTimeWindow}</strong>
                 <span className="text-muted">({currentRequest.requestedDuration} hours)</span>
               </div>
 
@@ -540,17 +619,148 @@ export const OptimizerPage: React.FC = () => {
                     <>
                       <li className="text-danger">Intersects {conflictingTrain || 'scheduled service'} at {collisionTime || 'specified time'}</li>
                       <li className="text-danger">Breaches 15-minute safety headway protocols</li>
-                      <li>Requires holding trains at loop lines</li>
+                      <li>Requires holding trains at loop lines / caution order</li>
                     </>
                   ) : (
                     <>
-                      <li>Secondary non-clashing slot on {currentRequest.sectionId}</li>
-                      <li>Nears morning peak passenger corridor transition</li>
-                      <li>Higher crew fatigue in early dawn hours</li>
+                      <li>Requested slot is free of conflicting train traffic</li>
+                      <li>Direct imposition without shifting maintenance crew</li>
+                      <li>Full standard possession authorized</li>
                     </>
                   )}
                 </ul>
               </div>
+
+              <button
+                className={`btn-primary-block ${hasConflict ? 'btn-danger-block' : 'btn-secondary'}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedOption('original');
+                  handleApprove('original');
+                }}
+              >
+                <Check size={16} />
+                <span>{hasConflict ? 'Force Approve Original (Caution Order)' : 'Approve Original Slot'}</span>
+              </button>
+            </div>
+
+            {/* Option 3: Manual Custom Slot (Interactive & Dynamic Evaluation) */}
+            <div
+              className={`alternative-card card-manual ${selectedOption === 'manual' ? 'card-selected' : ''}`}
+              onClick={() => setSelectedOption('manual')}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="alt-head">
+                <div>
+                  <span className="alt-pill pill-manual">
+                    Option 3: Manual Window (Custom)
+                  </span>
+                  <h4 className="alt-title">Manual Controller Override</h4>
+                </div>
+                <div
+                  className="alt-score-circle"
+                  style={{
+                    background: manualEvaluation.hasConflict ? '#fef2f2' : '#ecfdf5',
+                    color: manualEvaluation.hasConflict ? '#991b1b' : '#065f46',
+                    borderColor: manualEvaluation.hasConflict ? '#fecaca' : '#a7f3d0'
+                  }}
+                >
+                  <strong>{manualEvaluation.score}</strong>
+                </div>
+              </div>
+
+              {/* Interactive time controls inside the 3rd card */}
+              <div className="manual-slot-controls" onClick={(e) => e.stopPropagation()}>
+                <div className="manual-input-pair">
+                  <label>Start Time (IST):</label>
+                  <input
+                    type="time"
+                    className="manual-time-input"
+                    value={manualStartTime}
+                    onChange={(e) => setManualStartTime(e.target.value)}
+                  />
+                </div>
+                <div className="manual-quick-chips">
+                  {['01:00', '02:00', '02:30', '03:00', '03:30', '04:00', '05:00'].map(t => (
+                    <button
+                      key={t}
+                      type="button"
+                      className={`manual-chip-btn ${manualStartTime === t ? 'active' : ''}`}
+                      onClick={() => setManualStartTime(t)}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="manual-input-pair" style={{ marginTop: '4px' }}>
+                  <label>Duration:</label>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {[1.5, 2.0, 2.5, 3.0, 4.0].map(d => (
+                      <button
+                        key={d}
+                        type="button"
+                        className={`manual-chip-btn ${manualDuration === d ? 'active' : ''}`}
+                        onClick={() => setManualDuration(d)}
+                      >
+                        {d}h
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="alt-timing-box">
+                <Clock size={14} className="text-muted" />
+                <strong>Time Window: {manualStartTime}–{manualEvaluation.endTime}</strong>
+                <span className="text-muted">({manualDuration} hours)</span>
+              </div>
+
+              <div className="alt-metrics-list">
+                <div className="alt-metric-row">
+                  <span>Department & Work:</span>
+                  <strong>{currentRequest.dept} ({currentRequest.workType})</strong>
+                </div>
+                <div className="alt-metric-row">
+                  <span>Estimated Train Impact:</span>
+                  <strong className={manualEvaluation.hasConflict ? 'text-danger' : 'text-success'}>
+                    {manualEvaluation.estimatedTrainImpact}
+                  </strong>
+                </div>
+                <div className="alt-metric-row">
+                  <span>Operational Conflicts:</span>
+                  <strong className={manualEvaluation.hasConflict ? 'text-danger' : 'text-success'}>
+                    {manualEvaluation.operationalConflictsText}
+                  </strong>
+                </div>
+                <div className="alt-metric-row">
+                  <span>Track Downtime:</span>
+                  <strong>{manualDuration} hours</strong>
+                </div>
+              </div>
+
+              <div className="alt-tradeoffs">
+                <span className="tradeoff-lbl">Live Results (Palakkad Timetable):</span>
+                <ul>
+                  {manualEvaluation.tradeoffs.map((item, idx) => (
+                    <li key={idx} className={manualEvaluation.hasConflict && idx < 2 ? 'text-danger' : ''}>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button
+                className={`btn-primary-block ${manualEvaluation.hasConflict ? 'btn-danger-block' : 'btn-manual-block'}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedOption('manual');
+                  handleApprove('manual');
+                }}
+              >
+                <Check size={16} />
+                <span>Approve Manual Slot ({manualStartTime}–{manualEvaluation.endTime})</span>
+              </button>
             </div>
           </div>
         </div>
@@ -580,9 +790,11 @@ export const OptimizerPage: React.FC = () => {
             </button>
             <button
               className="btn-primary"
-              onClick={handleApprove}
+              onClick={() => handleApprove(selectedOption)}
             >
-              <span>Submit to Plan Review ({currentRequest.id})</span>
+              <span>
+                Submit {selectedOption === 'manual' ? 'Manual' : selectedOption === 'original' ? 'Original' : 'AI'} Plan to Review ({currentRequest.id})
+              </span>
               <ArrowRight size={15} />
             </button>
           </div>

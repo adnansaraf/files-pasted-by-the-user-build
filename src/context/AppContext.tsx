@@ -158,7 +158,7 @@ interface AppContextType {
   
   isOptimizing: boolean;
   runOptimizer: () => Promise<void>;
-  approvePlan: () => void;
+  approvePlan: (customWindow?: { start: string; end: string; planType?: string; score?: number; reasons?: string[] }) => void;
   rejectPlan: () => void;
   
   whatIfState: WhatIfScenarioState;
@@ -869,9 +869,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setIsOptimizing(false);
   };
 
-  const approvePlan = () => {
+  const approvePlan = (customWindow?: { start: string; end: string; planType?: string; score?: number; reasons?: string[] }) => {
+    const winStr = customWindow ? `${customWindow.start}–${customWindow.end}` : undefined;
     setOptimizationPlan(prev => ({
       ...prev,
+      recommendedWindow: winStr || prev.recommendedWindow,
+      overallScore: customWindow?.score ?? prev.overallScore,
+      reasons: customWindow?.reasons ?? prev.reasons,
       approvalStatus: 'Approved',
       approvedBy: 'Adnan Saraf (Sr. DOM / PGT)',
       approvedAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST'
@@ -879,7 +883,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     // Update requests to planned/scheduled
     setRequests(prev =>
-      prev.map(r => ({ ...r, status: 'Planned' }))
+      prev.map(r => ({
+        ...r,
+        status: 'Planned',
+        ...(winStr ? { preferredTimeWindow: winStr } : {})
+      }))
     );
 
     // Ensure approved request is converted into an active/planned block in Live Execution Register
@@ -888,9 +896,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const additions: MaintenanceBlock[] = [];
       requests.forEach(req => {
         if (!existingReqIds.has(req.id)) {
-          const [sh, eh] = (req.aiAnalysis?.recommendedWindow 
-            ? `${req.aiAnalysis.recommendedWindow.start}–${req.aiAnalysis.recommendedWindow.end}`
-            : req.preferredTimeWindow).split(/[–\-]/).map(s => s.trim());
+          let sh = '02:00';
+          let eh = '04:00';
+          if (customWindow) {
+            sh = customWindow.start;
+            eh = customWindow.end;
+          } else {
+            const [wStart, wEnd] = (req.aiAnalysis?.recommendedWindow 
+              ? `${req.aiAnalysis.recommendedWindow.start}–${req.aiAnalysis.recommendedWindow.end}`
+              : req.preferredTimeWindow).split(/[–\-]/).map(s => s.trim());
+            sh = wStart || '02:00';
+            eh = wEnd || '04:00';
+          }
           additions.push({
             id: `BLK-${req.sectionId}-${Date.now().toString().slice(-4)}`,
             sectionId: req.sectionId,
@@ -898,10 +915,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             departments: [req.dept],
             requestIds: [req.id],
             workSummary: `${req.workType} (${req.sectionName})`,
-            scheduledStart: sh || '02:00',
-            scheduledEnd: eh || '04:00',
-            actualStart: sh || '02:00',
-            expectedEnd: eh || '04:00',
+            scheduledStart: sh,
+            scheduledEnd: eh,
+            actualStart: sh,
+            expectedEnd: eh,
             durationHours: req.requestedDuration,
             progressPercent: 30,
             status: 'Active',
@@ -910,18 +927,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             crewAssigned: req.resources || 'Division Track Gang Unit',
             overheadPowerCutRequired: req.dept === 'TRD' || (req.constraints || '').toLowerCase().includes('power'),
             speedRestrictionImposed: (req.constraints || '').toLowerCase().includes('caution') ? '45 km/h Caution Order' : undefined,
-            notes: req.description
+            notes: `${req.description} [Approved via: ${customWindow?.planType || 'AI Optimization'}]`
           });
         }
       });
       return [...additions, ...prev];
     });
 
+    const planLabel = customWindow?.planType || 'AI-optimized';
+    const slotLabel = winStr || 'optimized window';
     setNotifications(prev => [
       {
         id: `N-${Date.now()}`,
         title: `Corridor Plan Approved`,
-        desc: `AI-optimized window approved. Track possessions scheduled in live execution register.`,
+        desc: `${planLabel} slot (${slotLabel}) signed off by Planner. Track possessions scheduled in live execution register.`,
         time: 'Just now',
         type: 'success'
       },

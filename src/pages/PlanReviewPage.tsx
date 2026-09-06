@@ -75,9 +75,9 @@ export const PlanReviewPage: React.FC = () => {
   const activeReq = requests[0];
   const ai = activeReq.aiAnalysis;
   const hasConflict = !!ai?.conflict;
-  const recommendedWindow = ai?.recommendedWindow
+  const recommendedWindow = optimizationPlan.recommendedWindow || (ai?.recommendedWindow
     ? `${ai.recommendedWindow.start}–${ai.recommendedWindow.end}`
-    : activeReq.preferredTimeWindow;
+    : activeReq.preferredTimeWindow);
 
   const getDeptIcon = (dept: string) => {
     switch (dept) {
@@ -92,11 +92,14 @@ export const PlanReviewPage: React.FC = () => {
     }
   };
 
-  const reasons = [
-    ai?.reasoning || (hasConflict ? 'Resolved train path conflict by repositioning window.' : 'Zero train path conflicts on section.'),
-    ai?.priorityNote || `Prioritized according to departmental priority: ${activeReq.priority}.`,
-    'Verified against Southern Railway Palakkad Division 24h timetable movements (data/timetable.json).'
-  ];
+  const score = optimizationPlan.overallScore || (hasConflict ? 88 : 97);
+  const reasons = (optimizationPlan.reasons && optimizationPlan.reasons.length > 0)
+    ? optimizationPlan.reasons
+    : [
+        ai?.reasoning || (hasConflict ? 'Resolved train path conflict by repositioning window.' : 'Zero train path conflicts on section.'),
+        ai?.priorityNote || `Prioritized according to departmental priority: ${activeReq.priority}.`,
+        'Verified against Southern Railway Palakkad Division 24h timetable movements (data/timetable.json).'
+      ];
 
   return (
     <div className="page-container">
@@ -269,7 +272,7 @@ export const PlanReviewPage: React.FC = () => {
                 <button
                   className="btn-primary-hero"
                   disabled={!hasConfirmedChecks}
-                  onClick={approvePlan}
+                  onClick={() => approvePlan()}
                 >
                   <CheckCircle2 size={18} />
                   <span>Approve & Authorize Block (OPT-{activeReq.id})</span>

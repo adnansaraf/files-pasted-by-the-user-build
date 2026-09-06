@@ -2388,6 +2388,99 @@ button {
   background: #fcfffd;
 }
 
+.alternative-card.card-selected {
+  outline: 2px solid var(--maroon-700);
+  box-shadow: 0 4px 12px rgba(128, 0, 0, 0.09);
+}
+
+.alternative-card.card-manual {
+  border: 1px solid #bae6fd;
+  background: #f8fafc;
+}
+
+.pill-manual {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.btn-danger-block {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.btn-danger-block:hover {
+  background: #b91c1c !important;
+}
+
+.btn-manual-block {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+.btn-manual-block:hover {
+  background: #0369a1 !important;
+}
+
+.manual-slot-controls {
+  background: #ffffff;
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.manual-input-pair {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.manual-input-pair label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--slate-600);
+}
+
+.manual-time-input {
+  border: 1px solid var(--slate-300);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--slate-800);
+  background: #ffffff;
+}
+
+.manual-quick-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.manual-chip-btn {
+  border: 1px solid var(--slate-200);
+  background: var(--slate-50);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--slate-700);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.manual-chip-btn:hover, .manual-chip-btn.active {
+  background: var(--maroon-50);
+  color: var(--maroon-800);
+  border-color: var(--maroon-300);
+}
+
 .alt-head {
   display: flex;
   justify-content: space-between;
