@@ -177,7 +177,7 @@ export const RequestModal: React.FC = () => {
 
   return (
     <div className="modal-backdrop" onClick={() => setIsNewRequestModalOpen(false)}>
-      <div className="modal-dialog" onClick={e => e.stopPropagation()}>
+      <div className="modal-dialog request-modal-dialog" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div>
             <div className="modal-subtitle">SOLVEX · DIVISIONAL MAINTENANCE DESK</div>
@@ -191,293 +191,294 @@ export const RequestModal: React.FC = () => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
-          <div className="form-grid-two">
-            {/* Department */}
-            <div className="form-field">
-              <label>Department</label>
-              <select value={dept} onChange={e => setDept(e.target.value as Department)}>
-                <option value="Engineering">Engineering (Track / Civil)</option>
-                <option value="TRD">TRD (Traction / 25kV OHE)</option>
-                <option value="S&T">S&T (Signalling & Telecom)</option>
-              </select>
-            </div>
-
-            {/* Section */}
-            <div className="form-field">
-              <label>Palakkad Railway Section</label>
-              <select value={sectionId} onChange={e => setSectionId(e.target.value)}>
-                {sections.map(s => (
-                  <option key={s.id} value={s.id}>
-                    Section {s.id} ({s.fromCode}–{s.toCode}: {s.fromName}–{s.toName})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Work Type */}
-            <div className="form-field full-width">
-              <label>Work Type / Nature of Maintenance</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. BCM Deep Screening, Rail Weld Replacement, OHE Dropper Inspection"
-                value={workType}
-                onChange={e => setWorkType(e.target.value)}
-              />
-            </div>
-
-            {/* Description */}
-            <div className="form-field full-width">
-              <label>Technical Description & Scope</label>
-              <textarea
-                rows={2}
-                placeholder="Specific track km, bridge no, mast numbers, or turnout points..."
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-              />
-            </div>
-
-            {/* Smart Synchronized Time & Duration Scheduler */}
-            <div className="form-field full-width smart-time-scheduler">
-              <div className="scheduler-header">
-                <div className="scheduler-title">
-                  <Clock size={15} className="text-maroon" />
-                  <span>Smart Possession Timing & Duration</span>
+        <form onSubmit={handleSubmit} className="modal-form request-modal-form">
+          <div className="request-form-columns">
+            {/* Left Column: Scope, Identification & Constraints */}
+            <div className="request-col-left">
+              <div className="form-grid-two">
+                {/* Department */}
+                <div className="form-field">
+                  <label>Department</label>
+                  <select value={dept} onChange={e => setDept(e.target.value as Department)}>
+                    <option value="Engineering">Engineering (Track / Civil)</option>
+                    <option value="TRD">TRD (Traction / 25kV OHE)</option>
+                    <option value="S&T">S&T (Signalling & Telecom)</option>
+                  </select>
                 </div>
-                <div className="scheduler-pill-summary">
-                  <span>{startTime} ➔ {endTime} IST</span>
-                  <span>({requestedDuration} hrs)</span>
-                  {timeToMins(endTime) < timeToMins(startTime) && (
-                    <span className="next-day-tag">+1 Day Overnight</span>
-                  )}
-                </div>
-              </div>
 
-              {/* 3-Column Stepper & Dropdown Controls */}
-              <div className="time-controls-grid">
-                <div className="time-ctrl-item">
-                  <label>Start Time (IST)</label>
-                  <select
-                    value={startTime}
-                    onChange={e => handleStartTimeChange(e.target.value)}
-                    className="time-select"
-                  >
-                    {TIME_OPTIONS.map(t => (
-                      <option key={`start-${t}`} value={t}>
-                        {t} IST
+                {/* Section */}
+                <div className="form-field">
+                  <label>Palakkad Railway Section</label>
+                  <select value={sectionId} onChange={e => setSectionId(e.target.value)}>
+                    {sections.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.id}: {s.fromName}–{s.toName}
                       </option>
                     ))}
                   </select>
                 </div>
+              </div>
 
-                <div className="time-ctrl-item">
-                  <label>Duration (Hours)</label>
-                  <div className="duration-stepper">
-                    <button
-                      type="button"
-                      className="stepper-btn"
-                      onClick={() => handleDurationChange(requestedDuration - 0.5)}
-                      disabled={requestedDuration <= 0.5}
-                      title="Decrease duration by 30 mins"
-                    >
-                      −
-                    </button>
-                    <input
-                      type="number"
-                      step="0.5"
-                      min="0.5"
-                      max="16"
-                      value={requestedDuration}
-                      onChange={e => handleDurationChange(Number(e.target.value))}
-                      className="stepper-input"
-                    />
-                    <button
-                      type="button"
-                      className="stepper-btn"
-                      onClick={() => handleDurationChange(requestedDuration + 0.5)}
-                      disabled={requestedDuration >= 16}
-                      title="Increase duration by 30 mins"
-                    >
-                      +
-                    </button>
+              {/* Work Type */}
+              <div className="form-field">
+                <label>Work Type / Nature of Maintenance</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. BCM Deep Screening, Rail Weld Replacement, OHE Dropper Inspection"
+                  value={workType}
+                  onChange={e => setWorkType(e.target.value)}
+                />
+              </div>
+
+              {/* Description */}
+              <div className="form-field">
+                <label>Technical Description & Scope</label>
+                <input
+                  type="text"
+                  placeholder="Specific track km, bridge no, mast numbers, or turnout points..."
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                />
+              </div>
+
+              {/* Priority & Deadline */}
+              <div className="form-grid-two">
+                <div className="form-field">
+                  <label>Priority Level</label>
+                  <select
+                    value={priority}
+                    onChange={e => setPriority(e.target.value as PriorityLevel)}
+                  >
+                    <option value="Critical">Critical (Track Defect / Safety)</option>
+                    <option value="High">High (Urgent Maintenance)</option>
+                    <option value="Medium">Medium (Routine Maintenance)</option>
+                    <option value="Low">Low (Preventive Inspection)</option>
+                  </select>
+                </div>
+
+                <div className="form-field">
+                  <label>Operational Deadline</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Tonight (Shift 3) or 28 Aug"
+                    value={deadline}
+                    onChange={e => setDeadline(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Operational Constraints */}
+              <div className="form-field">
+                <label>Operational Constraints</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Requires 25kV traction shutdown; 45 km/h caution order post-work"
+                  value={constraints}
+                  onChange={e => setConstraints(e.target.value)}
+                />
+              </div>
+
+              {/* Machinery & Resources */}
+              <div className="form-field">
+                <label>Equipment & Gang Resources</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 1 Plasser Duomatic, 1 JE/P-Way, 18 Gangmen, Tower Wagon Unit"
+                  value={resources}
+                  onChange={e => setResources(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Right Column: Smart Synchronized Scheduler & Predictive Intel */}
+            <div className="request-col-right">
+              <div className="smart-time-scheduler compact-scheduler">
+                <div className="scheduler-header">
+                  <div className="scheduler-title">
+                    <Clock size={14} className="text-maroon" />
+                    <span>Smart Possession Timing & Duration</span>
+                  </div>
+                  <div className="scheduler-pill-summary">
+                    <span>{startTime} ➔ {endTime} IST</span>
+                    <span>({requestedDuration} hrs)</span>
+                    {timeToMins(endTime) < timeToMins(startTime) && (
+                      <span className="next-day-tag">+1 Day Overnight</span>
+                    )}
                   </div>
                 </div>
 
-                <div className="time-ctrl-item">
-                  <label>Calculated End Time</label>
-                  <select
-                    value={endTime}
-                    onChange={e => handleEndTimeChange(e.target.value)}
-                    className="time-select"
-                  >
-                    {TIME_OPTIONS.map(t => (
-                      <option key={`end-${t}`} value={t}>
-                        {t} IST {timeToMins(t) < timeToMins(startTime) ? '(Next Day)' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                {/* 3-Column Stepper & Dropdown Controls */}
+                <div className="time-controls-grid">
+                  <div className="time-ctrl-item">
+                    <label>Start Time (IST)</label>
+                    <select
+                      value={startTime}
+                      onChange={e => handleStartTimeChange(e.target.value)}
+                      className="time-select"
+                    >
+                      {TIME_OPTIONS.map(t => (
+                        <option key={`start-${t}`} value={t}>
+                          {t} IST
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {/* Quick Duration Buttons */}
-              <div className="duration-chips-row">
-                <span className="chips-label">Quick Duration:</span>
-                {[1, 1.5, 2, 2.5, 3, 4, 5, 6, 8].map(dur => (
-                  <button
-                    key={dur}
-                    type="button"
-                    className={`dur-chip ${requestedDuration === dur ? 'active' : ''}`}
-                    onClick={() => handleDurationChange(dur)}
-                  >
-                    {dur}h
-                  </button>
-                ))}
-              </div>
-
-              {/* Horizontal Scrollable Time Selector Strip */}
-              <div className="scroll-picker-box">
-                <div className="scroll-picker-label">
-                  <span>Time choosing scrolling window (Click any time to set start):</span>
-                  <span className="scroll-hint">← Scroll 24h timeline →</span>
-                </div>
-                <div className="time-scroll-container">
-                  {TIME_OPTIONS.map(timeStr => {
-                    const isStart = timeStr === startTime;
-                    const inWindow = isTimeInWindow(timeStr, startTime, endTime);
-                    return (
+                  <div className="time-ctrl-item">
+                    <label>Duration (Hours)</label>
+                    <div className="duration-stepper">
                       <button
-                        key={timeStr}
                         type="button"
-                        className={`time-chip ${isStart ? 'chip-start' : ''} ${inWindow ? 'chip-in-window' : ''}`}
-                        onClick={() => handleStartTimeChange(timeStr)}
-                        title={`Set Start Time to ${timeStr} IST (End will be ${computeEndTime(timeStr, requestedDuration)})`}
+                        className="stepper-btn"
+                        onClick={() => handleDurationChange(requestedDuration - 0.5)}
+                        disabled={requestedDuration <= 0.5}
+                        title="Decrease duration by 30 mins"
                       >
-                        <span className="time-chip-text">{timeStr}</span>
-                        {isStart && <span className="time-chip-pin">START</span>}
+                        −
                       </button>
-                    );
-                  })}
+                      <input
+                        type="number"
+                        step="0.5"
+                        min="0.5"
+                        max="16"
+                        value={requestedDuration}
+                        onChange={e => handleDurationChange(Number(e.target.value))}
+                        className="stepper-input"
+                      />
+                      <button
+                        type="button"
+                        className="stepper-btn"
+                        onClick={() => handleDurationChange(requestedDuration + 0.5)}
+                        disabled={requestedDuration >= 16}
+                        title="Increase duration by 30 mins"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="time-ctrl-item">
+                    <label>Calculated End Time</label>
+                    <select
+                      value={endTime}
+                      onChange={e => handleEndTimeChange(e.target.value)}
+                      className="time-select"
+                    >
+                      {TIME_OPTIONS.map(t => (
+                        <option key={`end-${t}`} value={t}>
+                          {t} IST {timeToMins(t) < timeToMins(startTime) ? '(+1 Day)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              {/* Divisional Shift Presets */}
-              <div className="shift-presets-row">
-                <span className="chips-label">Palakkad Shift Presets:</span>
-                <button
-                  type="button"
-                  className="preset-btn"
-                  onClick={() => applyPreset('01:30', 3)}
-                >
-                  🌙 Night Possession (01:30–04:30)
-                </button>
-                <button
-                  type="button"
-                  className="preset-btn"
-                  onClick={() => applyPreset('02:00', 3)}
-                >
-                  🌅 Early Morning (02:00–05:00)
-                </button>
-                <button
-                  type="button"
-                  className="preset-btn"
-                  onClick={() => applyPreset('11:00', 2.5)}
-                >
-                  ☀️ Midday Traffic Gap (11:00–13:30)
-                </button>
-                <button
-                  type="button"
-                  className="preset-btn"
-                  onClick={() => applyPreset('08:00', 4)}
-                >
-                  🔧 Shift 1 Morning (08:00–12:00)
-                </button>
-              </div>
-            </div>
-
-            {/* Priority Level */}
-            <div className="form-field">
-              <label>Priority Level</label>
-              <select
-                value={priority}
-                onChange={e => setPriority(e.target.value as PriorityLevel)}
-              >
-                <option value="Critical">Critical (Track Defect / Direct Safety Risk)</option>
-                <option value="High">High (Urgent Scheduled Maintenance)</option>
-                <option value="Medium">Medium (Routine Periodic Maintenance)</option>
-                <option value="Low">Low (Preventive Inspection)</option>
-              </select>
-            </div>
-
-            {/* Deadline */}
-            <div className="form-field">
-              <label>Operational Deadline</label>
-              <input
-                type="text"
-                placeholder="e.g. Tonight (Shift 3) or 28 Aug"
-                value={deadline}
-                onChange={e => setDeadline(e.target.value)}
-              />
-            </div>
-
-            {/* Operational Constraints */}
-            <div className="form-field full-width">
-              <label>Operational Constraints</label>
-              <input
-                type="text"
-                placeholder="e.g. Requires 25kV traction shutdown; 45 km/h caution order post-work"
-                value={constraints}
-                onChange={e => setConstraints(e.target.value)}
-              />
-            </div>
-
-            {/* Machinery & Resources */}
-            <div className="form-field full-width">
-              <label>Equipment & Gang Resources</label>
-              <input
-                type="text"
-                placeholder="e.g. 1 Plasser Duomatic, 1 JE/P-Way, 18 Gangmen, Tower Wagon Unit"
-                value={resources}
-                onChange={e => setResources(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Real-time Predictive Overrun & Priority Preview Box */}
-          <div className="predictive-intel-banner">
-            <div className="intel-badge">
-              <Sparkles size={14} />
-              <span>Simulated Predictive Intelligence</span>
-            </div>
-            <div className="intel-row">
-              <div>
-                <small className="text-muted">Calculated Priority Score</small>
-                <div className="intel-val text-maroon">
-                  <strong>{calculatedScore}</strong> / 100
-                </div>
-              </div>
-              <div>
-                <small className="text-muted">Predicted Duration</small>
-                <div className="intel-val">
-                  <strong>{predictedDuration} hrs</strong>
-                  <span className="text-xs text-muted"> (Requested: {requestedDuration}h)</span>
-                </div>
-              </div>
-              <div>
-                <small className="text-muted">Historical Similar Jobs Benchmark</small>
-                <div className="intel-samples">
-                  {historicalVarianceSamples.map((s, i) => (
-                    <span key={i} className="sample-tag">{s}h</span>
+                {/* Quick Duration Buttons */}
+                <div className="duration-chips-row">
+                  <span className="chips-label">Quick Duration:</span>
+                  {[1, 1.5, 2, 2.5, 3, 4, 5, 6, 8].map(dur => (
+                    <button
+                      key={dur}
+                      type="button"
+                      className={`dur-chip ${requestedDuration === dur ? 'active' : ''}`}
+                      onClick={() => handleDurationChange(dur)}
+                    >
+                      {dur}h
+                    </button>
                   ))}
                 </div>
+
+                {/* Horizontal Scrollable Time Selector Strip */}
+                <div className="scroll-picker-box">
+                  <div className="scroll-picker-label">
+                    <span>24h Timeline Chooser (Click time to set start):</span>
+                    <span className="scroll-hint">← Scroll 24h →</span>
+                  </div>
+                  <div className="time-scroll-container">
+                    {TIME_OPTIONS.map(timeStr => {
+                      const isStart = timeStr === startTime;
+                      const inWindow = isTimeInWindow(timeStr, startTime, endTime);
+                      return (
+                        <button
+                          key={timeStr}
+                          type="button"
+                          className={`time-chip ${isStart ? 'chip-start' : ''} ${inWindow ? 'chip-in-window' : ''}`}
+                          onClick={() => handleStartTimeChange(timeStr)}
+                          title={`Set Start Time to ${timeStr} IST`}
+                        >
+                          <span className="time-chip-text">{timeStr}</span>
+                          {isStart && <span className="time-chip-pin">START</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Divisional Shift Presets */}
+                <div className="shift-presets-row">
+                  <span className="chips-label">Presets:</span>
+                  <button
+                    type="button"
+                    className="preset-btn"
+                    onClick={() => applyPreset('01:30', 3)}
+                  >
+                    🌙 Night (01:30–04:30)
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-btn"
+                    onClick={() => applyPreset('02:00', 3)}
+                  >
+                    🌅 Early Morning (02:00–05:00)
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-btn"
+                    onClick={() => applyPreset('11:00', 2.5)}
+                  >
+                    ☀️ Midday (11:00–13:30)
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-btn"
+                    onClick={() => applyPreset('08:00', 4)}
+                  >
+                    🔧 Shift 1 (08:00–12:00)
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className="intel-disclaimer">
-              Prototype predictive duration model based on simulated divisional maintenance variance.
+
+              {/* Real-time Predictive Overrun & Priority Preview Box */}
+              <div className="predictive-intel-banner compact-intel">
+                <div className="intel-row">
+                  <div>
+                    <small className="text-muted">Priority Score</small>
+                    <div className="intel-val text-maroon">
+                      <strong>{calculatedScore}</strong> / 100
+                    </div>
+                  </div>
+                  <div>
+                    <small className="text-muted">Predicted Duration</small>
+                    <div className="intel-val">
+                      <strong>{predictedDuration} hrs</strong>
+                      <span className="text-xs text-muted"> ({requestedDuration}h req)</span>
+                    </div>
+                  </div>
+                  <div>
+                    <small className="text-muted">Benchmark Samples</small>
+                    <div className="intel-samples">
+                      {historicalVarianceSamples.slice(0, 3).map((s, i) => (
+                        <span key={i} className="sample-tag">{s}h</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="modal-footer">
+          <div className="modal-footer request-modal-footer">
             <button
               type="button"
               className="btn-secondary"
