@@ -63,6 +63,21 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Diagnostic mode to discover available models directly on Vercel with the configured key
+  if (req.method === 'GET' && req.query && req.query.diag === 'models') {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(200).json({ error: 'GEMINI_API_KEY is not configured in environment' });
+    }
+    try {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+      const data = await resp.json();
+      return res.status(200).json(data);
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
   }
@@ -97,9 +112,9 @@ export default async function handler(req, res) {
     const trainsList = timetableData.trains || [];
 
     const trainMetaMap = new Map();
-    trainsList.forEach(t => {
-      trainMetaMap.set(String(t['Train Number']), t);
-    });
+    for (const tr of trainsList) {
+      trainMetaMap.set(String(tr['Train Number']), tr);
+    }
 
     const normalizedSection = section.trim().toUpperCase();
 
@@ -144,7 +159,10 @@ export default async function handler(req, res) {
             start: minutesToTime(endMin + 30),
             end: minutesToTime(endMin + 30 + durationNum * 60)
           }
-        : { start: startTime, end: endTimeStr },
+        : {
+            start: startTime,
+            end: endTimeStr
+          },
       reasoning: trainDetails.length > 0
         ? `Found ${trainDetails.length} scheduled train passage(s) in section ${normalizedSection} during the requested window.`
         : `Section ${normalizedSection} has no scheduled train movements during the requested window.`,
@@ -157,19 +175,6 @@ export default async function handler(req, res) {
     if (apiKey) {
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        // Use gemini-2.0-flash, falling back to gemini-1.5-flash if needed
-        let model;
-        try {
-          model = genAI.getGenerativeModel({
-            model: 'gemini-2.0-flash',
-            generationConfig: { responseMimeType: 'application/json' }
-          });
-        } catch (mErr) {
-          model = genAI.getGenerativeModel({
-            model: 'gemini-1.5-flash',
-            generationConfig: { responseMimeType: 'application/json' }
-          });
-        }
 
         const prompt = `You are an expert Indian Railways (Palakkad Division) operations and corridor block planning controller.
 Analyze the requested railway maintenance possession against actual scheduled train movements.
@@ -209,17 +214,34 @@ Return STRICT JSON only matching this exact schema:
   "priorityNote": string
 }`;
 
-        let result;
-        try {
-          result = await model.generateContent(prompt);
-        } catch (genErr) {
-          // If gemini-2.0-flash threw an error, attempt fallback to gemini-1.5-flash
-          console.warn('Primary model error, attempting gemini-1.5-flash fallback:', genErr.message);
-          const fallbackModel = genAI.getGenerativeModel({
-            model: 'gemini-1.5-flash',
-            generationConfig: { responseMimeType: 'application/json' }
-          });
-          result = await fallbackModel.generateContent(prompt);
+        // Candidate models in preference order
+        const candidateModels = [
+          'gemini-2.0-flash',
+          'gemini-2.0-flash-lite',
+          'gemini-2.5-flash',
+          'gemini-1.5-flash-8b',
+          'gemini-1.5-pro'
+        ];
+
+        let result = null;
+        let lastError = null;
+
+        for (const modelName of candidateModels) {
+          try {
+            const m = genAI.getGenerativeModel({
+              model: modelName,
+              generationConfig: { responseMimeType: 'application/json' }
+            });
+            result = await m.generateContent(prompt);
+            if (result) break;
+          } catch (err) {
+            lastError = err;
+            console.warn(`Model ${modelName} failed:`, err.message);
+          }
+        }
+
+        if (!result) {
+          throw lastError || new Error('No available Gemini model succeeded.');
         }
 
         let rawText = result.response.text() || '';
@@ -235,7 +257,6 @@ Return STRICT JSON only matching this exact schema:
         parsedResult = JSON.parse(rawText);
       } catch (geminiError) {
         console.error('Error invoking or parsing Gemini API response:', geminiError);
-        // Keep defensive fallback without crashing the function
         parsedResult.reasoning = `${parsedResult.reasoning} (AI fallback active: ${geminiError.message || 'Error communicating with model'})`;
       }
     } else {
