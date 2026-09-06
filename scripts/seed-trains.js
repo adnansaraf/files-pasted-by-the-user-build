@@ -100,9 +100,24 @@ async function seed() {
     .from('section_movements')
     .select('*', { count: 'exact', head: true });
 
+  // Fetch sample rows
+  const { data: sampleTrain } = await supabase
+    .from('trains')
+    .select('*')
+    .limit(1);
+
+  const { data: sampleMovement } = await supabase
+    .from('section_movements')
+    .select('*')
+    .limit(1);
+
   console.log('--- Verification Summary ---');
   console.log(`Total rows in 'trains' table: ${totalTrains}`);
   console.log(`Total rows in 'section_movements' table: ${totalMovements}`);
+  console.log('\nSample row from trains:');
+  console.log(JSON.stringify(sampleTrain?.[0] || null, null, 2));
+  console.log('\nSample row from section_movements:');
+  console.log(JSON.stringify(sampleMovement?.[0] || null, null, 2));
 }
 
 seed().catch(err => {
