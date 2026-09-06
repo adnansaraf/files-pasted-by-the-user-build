@@ -13,8 +13,7 @@ import {
   Zap,
   CheckCircle2,
   AlertTriangle,
-  Info,
-  Play
+  Info
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { GanttTimeline } from '../components/GanttTimeline';
@@ -54,27 +53,6 @@ export const OverviewPage: React.FC = () => {
         </div>
 
         <div className="header-actions-group">
-          <button
-            className="btn-accent"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-              color: '#ffffff',
-              border: 'none',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(2,132,199,0.25)'
-            }}
-            onClick={() => setIsTestRunModalOpen(true)}
-            title="Launch Realistic 2-Day Timetable Test Run"
-          >
-            <Play size={16} fill="#ffffff" />
-            <span>Run Test Simulation</span>
-          </button>
           <button
             className="btn-secondary"
             onClick={() => navigateTo('What-if Simulator')}
