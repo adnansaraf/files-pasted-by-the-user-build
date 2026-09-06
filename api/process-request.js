@@ -78,6 +78,19 @@ export default async function handler(req, res) {
     }
   }
 
+  if (req.method === 'GET' && req.query && req.query.diag === 'test') {
+    const apiKey = process.env.GEMINI_API_KEY;
+    const modelToTest = req.query.m || 'gemini-2.5-flash';
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: modelToTest });
+      const resAI = await model.generateContent('Say hello in 2 words');
+      return res.status(200).json({ success: true, text: resAI.response.text(), model: modelToTest });
+    } catch (e) {
+      return res.status(200).json({ success: false, error: e.message, model: modelToTest });
+    }
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
   }
