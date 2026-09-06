@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { supabase } from './_supabaseClient.js';
 
 // Helper to convert "HH:MM" to minutes from midnight
@@ -21,7 +21,7 @@ function minutesToTime(totalMinutes) {
   return `${hours}:${minutes}`;
 }
 
-// Helper to load data/timetable.json from multiple candidate paths
+// Helper to load data/timetable.json from candidate paths
 function loadTimetableData() {
   const possiblePaths = [
     path.join(process.cwd(), 'data', 'timetable.json'),
@@ -44,7 +44,7 @@ function loadTimetableData() {
 }
 
 export default async function handler(req, res) {
-  // CORS Headers
+  // 1. Set CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
 
-  // Handle preflight
+  // Preflight check
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
@@ -73,6 +73,7 @@ export default async function handler(req, res) {
       }
     }
 
+    // 1. Accept POST body: { section, startTime, duration, priority }
     const { section, startTime, duration, priority } = body || {};
 
     if (!section || !startTime) {
@@ -86,21 +87,18 @@ export default async function handler(req, res) {
     const endMin = startMin + durationNum * 60;
     const endTimeStr = minutesToTime(endMin);
 
-    // Load actual timetable
+    // 2. Load data/timetable.json and filter sectionMovements
     const timetableData = loadTimetableData();
     const sectionMovements = timetableData.sectionMovements || [];
     const trainsList = timetableData.trains || [];
 
-    // Create a fast lookup map for train metadata
     const trainMetaMap = new Map();
     trainsList.forEach(t => {
       trainMetaMap.set(String(t['Train Number']), t);
     });
 
-    // Normalize section format (e.g., handles "PGT-SRR" or "SRR-PGT" if bi-directional search needed)
     const normalizedSection = section.trim().toUpperCase();
 
-    // Filter section movements that overlap [startTime, startTime + duration]
     const overlappingMovements = sectionMovements.filter(m => {
       const movementSection = (m.Section || '').trim().toUpperCase();
       if (movementSection !== normalizedSection) {
@@ -110,16 +108,13 @@ export default async function handler(req, res) {
       const depMin = timeToMinutes(m.Departure);
       const arrMin = timeToMinutes(m.Arrival);
 
-      // Handle normal overlapping intervals (taking into account departure < arrival)
-      // If arrival time is earlier than departure (e.g. crossing midnight), adjust
       const effectiveArrMin = arrMin >= depMin ? arrMin : arrMin + 1440;
       const effectiveEndMin = endMin >= startMin ? endMin : endMin + 1440;
 
-      // Overlap condition: max(startMin, depMin) < min(effectiveEndMin, effectiveArrMin)
       return depMin < effectiveEndMin && effectiveArrMin > startMin;
     });
 
-    // Build train details for prompt
+    // 3. Build train details for the prompt
     const trainDetails = overlappingMovements.map(m => {
       const trainNo = String(m['Train Number']);
       const meta = trainMetaMap.get(trainNo) || {};
@@ -127,62 +122,53 @@ export default async function handler(req, res) {
         trainNumber: trainNo,
         trainName: m['Train Name'] || meta['Train Name'] || 'Unknown',
         trainType: meta['Train Type'] || 'Express',
-        origin: meta['Origin'] || m['From Code'] || m['From'],
-        destination: meta['Destination'] || m['To Code'] || m['To'],
-        from: m['From'],
-        fromCode: m['From Code'],
         departure: m['Departure'],
-        to: m['To'],
-        toCode: m['To Code'],
         arrival: m['Arrival'],
-        occupationMinutes: m['Occupation (min)'],
+        from: m['From'],
+        to: m['To'],
         date: m['Calendar Date']
       };
     });
 
-    // Check Gemini API Key
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      // Fallback response if GEMINI_API_KEY is not set
-      const fallbackResult = {
-        conflict: trainDetails.length > 0,
-        conflictingTrain: trainDetails.length > 0 ? `${trainDetails[0].trainName} (${trainDetails[0].trainNumber})` : null,
-        collisionTime: trainDetails.length > 0 ? trainDetails[0].departure : null,
-        recommendedWindow: trainDetails.length > 0
-          ? {
-              start: minutesToTime(endMin + 30),
-              end: minutesToTime(endMin + 30 + durationNum * 60)
-            }
-          : { start: startTime, end: endTimeStr },
-        reasoning: `Evaluation completed via timetable inspection: ${trainDetails.length} train(s) identified in section ${section}. Note: GEMINI_API_KEY is not configured on the environment.`,
-        priorityNote: `Priority ${priority || 'Normal'} processed without AI LLM fine-tuning.`
-      };
+    // Default fallback in case of no key or unexpected failure
+    let parsedResult = {
+      conflict: trainDetails.length > 0,
+      conflictingTrain: trainDetails.length > 0 ? `${trainDetails[0].trainName} (${trainDetails[0].trainNumber})` : null,
+      collisionTime: trainDetails.length > 0 ? trainDetails[0].departure : null,
+      recommendedWindow: trainDetails.length > 0
+        ? {
+            start: minutesToTime(endMin + 30),
+            end: minutesToTime(endMin + 30 + durationNum * 60)
+          }
+        : { start: startTime, end: endTimeStr },
+      reasoning: trainDetails.length > 0
+        ? `Found ${trainDetails.length} scheduled train passage(s) in section ${normalizedSection} during the requested window.`
+        : `Section ${normalizedSection} has no scheduled train movements during the requested window.`,
+      priorityNote: `Assessed under priority ${priority || 'High'}.`
+    };
 
-      // Persist to Supabase if configured
+    // 4. Call Google Gemini API
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (apiKey) {
       try {
-        if (process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY) {
-          const startTimeIso = new Date(`2026-09-06T${startTime}:00+05:30`).toISOString();
-          await supabase.from('maintenance_requests').insert({
-            section: normalizedSection,
-            start_time: startTimeIso,
-            duration_minutes: Math.round(durationNum * 60),
-            priority: priority || 'High',
-            status: 'Pending',
-            ai_result: fallbackResult
+        const genAI = new GoogleGenerativeAI(apiKey);
+        // Use gemini-2.0-flash, falling back to gemini-1.5-flash if needed
+        let model;
+        try {
+          model = genAI.getGenerativeModel({
+            model: 'gemini-2.0-flash',
+            generationConfig: { responseMimeType: 'application/json' }
+          });
+        } catch (mErr) {
+          model = genAI.getGenerativeModel({
+            model: 'gemini-1.5-flash',
+            generationConfig: { responseMimeType: 'application/json' }
           });
         }
-      } catch (dbErr) {
-        console.error('Failed to persist request to Supabase:', dbErr);
-      }
 
-      return res.status(200).json(fallbackResult);
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
-
-    // Build the prompt
-    const prompt = `You are an expert railway operations controller and block planning system for Indian Railways (Palakkad Division).
-Analyze the requested railway maintenance block window and verify against the actual scheduled train movements.
+        const prompt = `You are an expert Indian Railways (Palakkad Division) operations and corridor block planning controller.
+Analyze the requested railway maintenance possession against actual scheduled train movements.
 
 REQUESTED MAINTENANCE BLOCK:
 - Section: ${normalizedSection}
@@ -191,15 +177,23 @@ REQUESTED MAINTENANCE BLOCK:
 - Duration: ${durationNum} hours
 - Priority: ${priority || 'High'}
 
-ACTUAL TRAIN MOVEMENTS IN THIS SECTION & WINDOW (From verified Palakkad Division Timetable):
+ACTUAL TRAIN MOVEMENTS IN THIS SECTION & WINDOW (Palakkad Division Timetable):
 ${JSON.stringify(trainDetails, null, 2)}
 
 INSTRUCTIONS:
-1. Determine if there is an operational conflict between the requested maintenance window and the scheduled train passages.
-2. If trains pass through the section during the requested [${startTime} - ${endTimeStr}] window, mark conflict as true.
-3. If there is a conflict, identify the primary conflicting train, the approximate collision point / time, and calculate a realistic recommended non-conflicting maintenance window (or lowest-impact window with minimum 15-minute headway) of duration ${durationNum} hours.
-4. If there are no conflicting trains in this window, mark conflict as false, set conflictingTrain and collisionTime to null, and recommend the requested window.
-5. Provide clear railway-grade reasoning citing the train numbers, types, and operational headway considerations, along with a note regarding the block priority.
+1. Determine if there is an operational conflict between the requested maintenance possession and the scheduled train passages.
+2. If any trains pass through the section during the requested [${startTime} - ${endTimeStr}] window, mark "conflict": true.
+3. If conflict is true:
+   - Identify the primary "conflictingTrain" (e.g. "Train Name (Number)")
+   - Identify the approximate "collisionTime" (e.g. "HH:MM")
+   - Suggest a realistic "recommendedWindow" with "start" and "end" (format "HH:MM") of duration ${durationNum} hours that minimizes delay to high-priority trains.
+4. If there are no conflicting trains:
+   - "conflict": false
+   - "conflictingTrain": null
+   - "collisionTime": null
+   - "recommendedWindow": { "start": "${startTime}", "end": "${endTimeStr}" }
+5. "reasoning": Clear explanation citing train movements, numbers, and operational considerations.
+6. "priorityNote": Operational recommendation based on the ${priority || 'High'} priority.
 
 Return STRICT JSON only matching this exact schema:
 {
@@ -211,47 +205,41 @@ Return STRICT JSON only matching this exact schema:
   "priorityNote": string
 }`;
 
-    // Call Gemini API
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json'
+        let result;
+        try {
+          result = await model.generateContent(prompt);
+        } catch (genErr) {
+          // If gemini-2.0-flash threw an error, attempt fallback to gemini-1.5-flash
+          console.warn('Primary model error, attempting gemini-1.5-flash fallback:', genErr.message);
+          const fallbackModel = genAI.getGenerativeModel({
+            model: 'gemini-1.5-flash',
+            generationConfig: { responseMimeType: 'application/json' }
+          });
+          result = await fallbackModel.generateContent(prompt);
+        }
+
+        let rawText = result.response.text() || '';
+
+        // 5. Parse response defensively (strip fences, handle JSON.parse)
+        rawText = rawText.trim();
+        if (rawText.startsWith('```json')) {
+          rawText = rawText.replace(/^```json\s*/, '').replace(/```\s*$/, '');
+        } else if (rawText.startsWith('```')) {
+          rawText = rawText.replace(/^```\s*/, '').replace(/```\s*$/, '');
+        }
+
+        parsedResult = JSON.parse(rawText);
+      } catch (geminiError) {
+        console.error('Error invoking or parsing Gemini API response:', geminiError);
+        // Keep defensive fallback without crashing the function
+        parsedResult.reasoning = `${parsedResult.reasoning} (AI fallback active: ${geminiError.message || 'Error communicating with model'})`;
       }
-    });
-
-    let rawText = response.text || '';
-    
-    // Strip markdown formatting if present
-    rawText = rawText.trim();
-    if (rawText.startsWith('```json')) {
-      rawText = rawText.replace(/^```json\s*/, '').replace(/```\s*$/, '');
-    } else if (rawText.startsWith('```')) {
-      rawText = rawText.replace(/^```\s*/, '').replace(/```\s*$/, '');
+    } else {
+      console.warn('GEMINI_API_KEY is not defined; returning timetable inspection fallback.');
+      parsedResult.reasoning = `${parsedResult.reasoning} (Note: GEMINI_API_KEY not configured in environment).`;
     }
 
-    let parsedResult;
-    try {
-      parsedResult = JSON.parse(rawText);
-    } catch (parseError) {
-      console.error('Failed to parse Gemini response as JSON:', rawText, parseError);
-      // Fallback response with defensiveness
-      parsedResult = {
-        conflict: trainDetails.length > 0,
-        conflictingTrain: trainDetails.length > 0 ? `${trainDetails[0].trainName} (${trainDetails[0].trainNumber})` : null,
-        collisionTime: trainDetails.length > 0 ? trainDetails[0].departure : null,
-        recommendedWindow: trainDetails.length > 0
-          ? {
-              start: minutesToTime(endMin + 20),
-              end: minutesToTime(endMin + 20 + durationNum * 60)
-            }
-          : { start: startTime, end: endTimeStr },
-        reasoning: `AI response parsing fallback: ${trainDetails.length} trains detected in section ${normalizedSection}. Raw analysis: ${rawText.slice(0, 150)}`,
-        priorityNote: `Assessed under priority ${priority || 'Standard'}`
-      };
-    }
-
-    // Persist to Supabase if configured
+    // 6. Insert request + ai_result into maintenance_requests Supabase table
     try {
       if (process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY) {
         const startTimeIso = new Date(`2026-09-06T${startTime}:00+05:30`).toISOString();
@@ -265,9 +253,10 @@ Return STRICT JSON only matching this exact schema:
         });
       }
     } catch (dbErr) {
-      console.error('Failed to persist request to Supabase:', dbErr);
+      console.error('Failed to insert maintenance request into Supabase:', dbErr);
     }
 
+    // 7. Return the parsed AI result to the frontend
     return res.status(200).json(parsedResult);
   } catch (err) {
     console.error('Error processing maintenance request:', err);
