@@ -402,17 +402,15 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
                 const isConflicting = conflicts.some(c => c.conflictingTrain?.trainNo === t.trainNo);
 
                 return (
-                  <div
+                  <button
                     key={`${t.trainNo}-${t.sectionId}-${t.entryTime}`}
+                    type="button"
                     className={`gantt-train-slot ${isConflicting ? 'slot-conflict' : ''} cat-${t.category.toLowerCase().replace(/ /g, '-')}`}
-                    style={{ left: `${startP}%`, width: `${widthP}%`, cursor: 'pointer' }}
+                    style={{ left: `${startP}%` }}
                     onClick={() => setSelectedTrain(t)}
+                    aria-label={`Train ${t.trainNo} (${t.trainName}) on Section ${t.sectionId}`}
                   >
-                    <div className="train-slot-text">
-                      <span className="train-slot-no">{t.trainNo}</span>
-                      <span className="train-slot-dot">·</span>
-                      <span className="train-slot-sec">{t.sectionId}</span>
-                    </div>
+                    <Train size={13} className="train-icon-sym" />
 
                     {/* Rich Instant Hover Popover */}
                     <div className="train-hover-popover">
@@ -425,12 +423,12 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
                         <div><span>Corridor Stations:</span> {t.fromStation || t.sectionId.split('-')[0]} ➔ {t.toStation || t.sectionId.split('-')[1]}</div>
                         <div><span>Passage Window:</span> <strong>{t.entryTime} → {t.exitTime} IST</strong></div>
                         <div><span>Category:</span> {t.category} (Priority {t.priority})</div>
-                        <div style={{ marginTop: '4px', fontSize: '10px', color: '#94a3b8', fontStyle: 'italic' }}>
-                          Click to open operational control card
+                        <div style={{ marginTop: '4px', fontSize: '10px', color: '#38bdf8', fontWeight: 600 }}>
+                          Click icon for full train details & telemetry →
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -454,11 +452,15 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
             <span>S&T Signalling Work</span>
           </span>
           <span className="g-legend-item">
-            <span className="g-legend-box bg-train" />
-            <span>Scheduled Train Run</span>
+            <span className="g-legend-box" style={{ background: '#1e293b', border: '1px solid #475569', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Train size={9} color="#38bdf8" />
+            </span>
+            <span>Train Run (Click icon to inspect)</span>
           </span>
           <span className="g-legend-item">
-            <span className="g-legend-box bg-conflict-pulse" />
+            <span className="g-legend-box" style={{ background: '#dc2626', border: '1px solid #f87171', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Train size={9} color="#ffffff" />
+            </span>
             <span>Train Path Conflict</span>
           </span>
         </div>
@@ -528,11 +530,14 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
                   </div>
                 </div>
 
-                {/* Train Info Cells */}
                 <div className="block-quick-info">
                   <div className="info-cell">
                     <span className="info-lbl">Active Section</span>
                     <strong>{selectedTrain.sectionId} Corridor</strong>
+                  </div>
+                  <div className="info-cell">
+                    <span className="info-lbl">Corridor Stations</span>
+                    <strong>{selectedTrain.fromStation || selectedTrain.sectionId.split('-')[0]} ➔ {selectedTrain.toStation || selectedTrain.sectionId.split('-')[1]}</strong>
                   </div>
                   <div className="info-cell">
                     <span className="info-lbl">Section Passage Window</span>
@@ -541,10 +546,6 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({
                   <div className="info-cell">
                     <span className="info-lbl">Max Permissible Buffer</span>
                     <strong>{selectedTrain.allowedDelayMin} Minutes Buffer</strong>
-                  </div>
-                  <div className="info-cell">
-                    <span className="info-lbl">Traction & Track Usage</span>
-                    <strong>25kV Electrified Dual Track</strong>
                   </div>
                 </div>
 
