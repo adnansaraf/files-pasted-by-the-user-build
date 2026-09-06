@@ -192,9 +192,30 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const [sections, setSections] = useState<RailwaySection[]>(SECTIONS);
-  const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
-  const [blocks, setBlocks] = useState<MaintenanceBlock[]>([]);
-  const [conflicts, setConflicts] = useState<OperationalConflict[]>([]);
+  const [requests, setRequests] = useState<MaintenanceRequest[]>(() => {
+    try {
+      const saved = localStorage.getItem('solvex_requests');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [blocks, setBlocks] = useState<MaintenanceBlock[]>(() => {
+    try {
+      const saved = localStorage.getItem('solvex_blocks');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [conflicts, setConflicts] = useState<OperationalConflict[]>(() => {
+    try {
+      const saved = localStorage.getItem('solvex_conflicts');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [optimizationPlan, setOptimizationPlan] = useState<OptimizationPlan>(INITIAL_OPTIMIZATION_PLAN);
   const [overrunScenario, setOverrunScenario] = useState<OverrunScenario>(OVERRUN_SCENARIO_DATA);
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -204,7 +225,47 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isNewRequestModalOpen, setIsNewRequestModalOpen] = useState(false);
   const [isTestRunModalOpen, setIsTestRunModalOpen] = useState(false);
 
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => {
+    try {
+      const saved = localStorage.getItem('solvex_notifications');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Sync state changes to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('solvex_requests', JSON.stringify(requests));
+    } catch (e) {
+      console.warn('Failed to persist requests to localStorage', e);
+    }
+  }, [requests]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('solvex_blocks', JSON.stringify(blocks));
+    } catch (e) {
+      console.warn('Failed to persist blocks to localStorage', e);
+    }
+  }, [blocks]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('solvex_conflicts', JSON.stringify(conflicts));
+    } catch (e) {
+      console.warn('Failed to persist conflicts to localStorage', e);
+    }
+  }, [conflicts]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('solvex_notifications', JSON.stringify(notifications));
+    } catch (e) {
+      console.warn('Failed to persist notifications to localStorage', e);
+    }
+  }, [notifications]);
 
   const [settings, setSettings] = useState<EngineSettings>({
     weightSafety: 35,
