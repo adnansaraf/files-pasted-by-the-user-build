@@ -192,7 +192,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const [sections, setSections] = useState<RailwaySection[]>(SECTIONS);
-  const [requests, setRequests] = useState<MaintenanceRequest[]>(INITIAL_REQUESTS);
+  const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
   const [blocks, setBlocks] = useState<MaintenanceBlock[]>(INITIAL_BLOCKS);
   const [conflicts, setConflicts] = useState<OperationalConflict[]>(INITIAL_CONFLICTS);
   const [optimizationPlan, setOptimizationPlan] = useState<OptimizationPlan>(INITIAL_OPTIMIZATION_PLAN);
@@ -708,7 +708,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const resetAllDemoData = () => {
     setSections(SECTIONS);
-    setRequests(INITIAL_REQUESTS);
+    setRequests([]);
     setBlocks(INITIAL_BLOCKS);
     setConflicts(INITIAL_CONFLICTS);
     setOptimizationPlan(INITIAL_OPTIMIZATION_PLAN);

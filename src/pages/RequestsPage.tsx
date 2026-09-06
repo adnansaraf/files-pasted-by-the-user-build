@@ -31,10 +31,10 @@ export const RequestsPage: React.FC = () => {
   const [selectedPriority, setSelectedPriority] = useState<string>('All');
   const [activeRequestDetail, setActiveRequestDetail] = useState<MaintenanceRequest | null>(null);
 
-  const totalCount = requests.length + 12; // Simulated total requests
-  const pendingCount = requests.filter(r => r.status === 'Pending').length + 6;
+  const totalCount = requests.length;
+  const pendingCount = requests.filter(r => r.status === 'Pending').length;
   const highPriorityCount = requests.filter(r => r.priority === 'Critical' || r.priority === 'High').length;
-  const scheduledCount = requests.filter(r => r.status === 'Planned' || r.status === 'Approved').length + 6;
+  const scheduledCount = requests.filter(r => r.status === 'Planned' || r.status === 'Approved').length;
 
   // Filter requests
   const filteredRequests = requests.filter(r => {
@@ -162,97 +162,119 @@ export const RequestsPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredRequests.map(r => (
-              <tr
-                key={r.id}
-                className={activeRequestDetail?.id === r.id ? 'row-selected' : ''}
-              >
-                <td>
-                  <strong className="text-monospace text-maroon">{r.id}</strong>
-                </td>
-                <td>
-                  <div className="dept-cell">
-                    {getDeptIcon(r.dept)}
-                    <span>{r.dept}</span>
-                  </div>
-                </td>
-                <td>
+            {filteredRequests.length === 0 ? (
+              <tr>
+                <td colSpan={9} style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--slate-500)' }}>
+                  <ClipboardList size={32} style={{ margin: '0 auto 10px', opacity: 0.5, display: 'block' }} />
+                  <strong style={{ display: 'block', fontSize: '14px', color: 'var(--navy-950)', marginBottom: '4px' }}>
+                    No Maintenance Requests Registered
+                  </strong>
+                  <p style={{ fontSize: '12px', marginBottom: '14px' }}>
+                    Submit a new block requisition to initiate AI conflict verification against the Palakkad Division timetable.
+                  </p>
                   <button
-                    className="section-clickable-btn"
-                    onClick={() => {
-                      setSelectedSectionId(r.sectionId);
-                      navigateTo('Railway Network');
-                    }}
-                    title={`Inspect Section ${r.sectionId} on Schematic Network`}
+                    className="btn-primary"
+                    style={{ margin: '0 auto' }}
+                    onClick={() => setIsNewRequestModalOpen(true)}
                   >
-                    {r.sectionName}
-                  </button>
-                </td>
-                <td>
-                  <div className="work-cell">
-                    <strong className="work-type-text">{r.workType}</strong>
-                    <span className="work-desc-text">{r.description}</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="duration-cell" title={`Simulated Historical benchmark: ${r.historicalSamples.join('h, ')}h`}>
-                    <strong>{r.requestedDuration}h</strong>
-                    <span className="predicted-tag">
-                      <Sparkles size={10} />
-                      <span>{r.predictedDuration}h est</span>
-                    </span>
-                  </div>
-                </td>
-                <td>
-                  <div className="time-badge">
-                    <Clock size={12} className="text-muted" />
-                    <span>{r.preferredTimeWindow}</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="priority-cell">
-                    <span className={`priority-tag priority-${r.priority.toLowerCase()}`}>
-                      {r.priority}
-                    </span>
-                    <span className="score-text">{r.priorityScore}/100</span>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span className={`status-pill status-${r.status.toLowerCase()}`}>
-                      {r.status}
-                    </span>
-                    {r.aiAnalysis && (
-                      <span
-                        className={`status-tag`}
-                        style={{
-                          fontSize: '10px',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          background: r.aiAnalysis.conflict ? '#fee2e2' : '#dcfce7',
-                          color: r.aiAnalysis.conflict ? '#991b1b' : '#166534',
-                          fontWeight: 600,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '3px'
-                        }}
-                      >
-                        <Sparkles size={9} />
-                        {r.aiAnalysis.conflict ? 'AI: Conflict' : 'AI: Clear'}
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="text-right">
-                  <button
-                    className="btn-link-sm"
-                    onClick={() => setActiveRequestDetail(r)}
-                  >
-                    Inspect
+                    <Plus size={15} />
+                    <span>+ Create Maintenance Request</span>
                   </button>
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredRequests.map(r => (
+                <tr
+                  key={r.id}
+                  className={activeRequestDetail?.id === r.id ? 'row-selected' : ''}
+                >
+                  <td>
+                    <strong className="text-monospace text-maroon">{r.id}</strong>
+                  </td>
+                  <td>
+                    <div className="dept-cell">
+                      {getDeptIcon(r.dept)}
+                      <span>{r.dept}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <button
+                      className="section-clickable-btn"
+                      onClick={() => {
+                        setSelectedSectionId(r.sectionId);
+                        navigateTo('Railway Network');
+                      }}
+                      title={`Inspect Section ${r.sectionId} on Schematic Network`}
+                    >
+                      {r.sectionName}
+                    </button>
+                  </td>
+                  <td>
+                    <div className="work-cell">
+                      <strong className="work-type-text">{r.workType}</strong>
+                      <span className="work-desc-text">{r.description}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="duration-cell" title={`Simulated Historical benchmark: ${r.historicalSamples.join('h, ')}h`}>
+                      <strong>{r.requestedDuration}h</strong>
+                      <span className="predicted-tag">
+                        <Sparkles size={10} />
+                        <span>{r.predictedDuration}h est</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="time-badge">
+                      <Clock size={12} className="text-muted" />
+                      <span>{r.preferredTimeWindow}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="priority-cell">
+                      <span className={`priority-tag priority-${r.priority.toLowerCase()}`}>
+                        {r.priority}
+                      </span>
+                      <span className="score-text">{r.priorityScore}/100</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <span className={`status-pill status-${r.status.toLowerCase()}`}>
+                        {r.status}
+                      </span>
+                      {r.aiAnalysis && (
+                        <span
+                          className={`status-tag`}
+                          style={{
+                            fontSize: '10px',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            background: r.aiAnalysis.conflict ? '#fee2e2' : '#dcfce7',
+                            color: r.aiAnalysis.conflict ? '#991b1b' : '#166534',
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px'
+                          }}
+                        >
+                          <Sparkles size={9} />
+                          {r.aiAnalysis.conflict ? 'AI: Conflict' : 'AI: Clear'}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="text-right">
+                    <button
+                      className="btn-link-sm"
+                      onClick={() => setActiveRequestDetail(r)}
+                    >
+                      Inspect
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
