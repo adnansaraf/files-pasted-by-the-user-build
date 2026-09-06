@@ -248,14 +248,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const divisionWzs = MAINTENANCE_WORK_ZONES.filter(wz => wz.divisionId === selectedDivisionId);
     setWorkZones(divisionWzs);
 
-    // Load division-specific mock requests, blocks, conflicts, optimizationPlan, overrunScenario
-    const mockBundle = getDivisionMockData(selectedDivisionId);
-    setRequests(mockBundle.requests);
-    setBlocks(mockBundle.blocks);
-    setConflicts(mockBundle.conflicts);
-    setOptimizationPlan(mockBundle.optimizationPlan);
-    setOverrunScenario(mockBundle.overrunScenario);
-
     // Reset drilldown level and active selections on division switch
     setSelectedDrillDownSectionId(null);
     setSelectedWorkZoneId(null);

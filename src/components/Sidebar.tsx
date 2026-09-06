@@ -36,12 +36,12 @@ export const Sidebar: React.FC = () => {
 
   const navItems: NavItem[] = [
     { name: 'Overview', icon: LayoutDashboard },
-    { name: 'Maintenance Requests', icon: ClipboardList, badge: pendingRequests, badgeType: 'warning' },
+    { name: 'Maintenance Requests', icon: ClipboardList, badge: pendingRequests > 0 ? pendingRequests : undefined, badgeType: 'warning' },
     { name: 'Block Planner', icon: CalendarRange },
     { name: 'AI Optimizer', icon: Sparkles, badge: 'AI', badgeType: 'primary' },
     { name: 'Railway Network', icon: Network },
-    { name: 'Conflicts', icon: TriangleAlert, badge: unresolvedConflicts, badgeType: 'danger' },
-    { name: 'Active Blocks', icon: Activity, badge: blocks.length, badgeType: 'info' },
+    { name: 'Conflicts', icon: TriangleAlert, badge: unresolvedConflicts > 0 ? unresolvedConflicts : undefined, badgeType: 'danger' },
+    { name: 'Active Blocks', icon: Activity, badge: blocks.length > 0 ? blocks.length : undefined, badgeType: 'info' },
     { name: 'What-if Simulator', icon: SlidersHorizontal },
     {
       name: 'Dynamic Rescheduling',
@@ -53,7 +53,7 @@ export const Sidebar: React.FC = () => {
     {
       name: 'Plan Review',
       icon: FileCheck,
-      badge: optimizationPlan.approvalStatus === 'Approved' ? 'Signed' : 'Review',
+      badge: optimizationPlan.approvalStatus === 'Approved' ? 'Signed' : (requests.length > 0 ? 'Review' : undefined),
       badgeType: optimizationPlan.approvalStatus === 'Approved' ? 'primary' : 'warning'
     }
   ];
